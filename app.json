@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "tracking_app",
-    "slug": "tracking_app",
+    "name": "Hadi Bidrohi",
+    "slug": "hadi-bidrohi",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/h.png",
     "scheme": "trackingapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -19,18 +19,19 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.zihadul.hadi-bidrohi"
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/h2.png"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
+          "image": "./assets/images/h.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff",
@@ -38,11 +39,24 @@
             "backgroundColor": "#000000"
           }
         }
-      ]
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location to share bus status."
+        }
+      ],
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "46399bd4-5611-4631-bb2a-e4fff3e0ee4e"
+      }
     }
   }
 }
