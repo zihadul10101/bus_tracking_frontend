@@ -1,5 +1,5 @@
-import React from 'react';
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { ActivityIndicator, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 
 interface Props {
@@ -9,72 +9,87 @@ interface Props {
 }
 
 export default function LiveTrackingView({ location, onStop, viewerCount = 0 }: Props) {
+  const mapRef = useRef<MapView>(null);
+
+  // Smoothly move the map when location updates
+  useEffect(() => {
+    if (location && mapRef.current) {
+      mapRef.current.animateToRegion({
+        ...location,
+        latitudeDelta: 0.005,
+        longitudeDelta: 0.005,
+      }, 1000);
+    }
+  }, [location]);
+
   return (
     <View style={styles.container}>
       <MapView
+        ref={mapRef}
         style={StyleSheet.absoluteFill}
-        region={{
-          latitude: location?.latitude || 22.3569, // default fallback
+        initialRegion={{
+          latitude: location?.latitude || 22.3569,
           longitude: location?.longitude || 91.7832,
           latitudeDelta: 0.005,
           longitudeDelta: 0.005,
         }}
+        // Prevents map elements from being hidden by overlays
+        mapPadding={{ top: 120, left: 0, right: 0, bottom: 0 }}
       >
-        {location && <Marker coordinate={location} title="You are here" />}
+        {location && <Marker coordinate={location} pinColor="red" title="You are here" />}
       </MapView>
 
-      <View style={styles.overlay}>
-        <View style={styles.badgeContainer}>
-          {location ? (
-            <Text style={styles.badge}>● LIVE</Text>
-          ) : (
-            <View style={styles.loadingRow}>
-              <ActivityIndicator size="small" color="#ef4444" />
-              <Text style={styles.loadingBadgeText}>Getting GPS fix...</Text>
-            </View>
-          )}
+      <SafeAreaView style={styles.overlay}>
+        {/* Status Header */}
+        <View style={styles.topContainer}>
+          <View style={[styles.badge, location ? styles.liveBadge : styles.loadingBadge]}>
+            {location ? (
+              <Text style={styles.liveText}>● LIVE</Text>
+            ) : (
+              <View style={styles.loadingRow}>
+                <ActivityIndicator size="small" color="#666" />
+                <Text style={styles.loadingText}> Connecting...</Text>
+              </View>
+            )}
+          </View>
+          
+          <View style={styles.viewerBadge}>
+            <Text style={styles.viewerText}>{viewerCount} watching</Text>
+          </View>
         </View>
 
-        <View style={styles.viewerBadge}>
-          <Text style={styles.viewerBadgeText}>
-            {viewerCount} {viewerCount === 1 ? 'viewer' : 'viewers'} watching
-          </Text>
-        </View>
-
+        {/* Action Footer */}
         <TouchableOpacity style={styles.stopButton} onPress={onStop}>
           <Text style={styles.buttonText}>Stop Sharing</Text>
         </TouchableOpacity>
-      </View>
+      </SafeAreaView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  overlay: { position: 'absolute', top: 60, alignSelf: 'center', alignItems: 'center', width: '100%' },
-  badgeContainer: { backgroundColor: 'rgba(255,255,255,0.9)', paddingVertical: 6, paddingHorizontal: 14, borderRadius: 20 },
-  badge: { color: 'red', fontWeight: 'bold' },
+  overlay: { position: 'absolute', top: 0, width: '100%', paddingHorizontal: 20 },
+  topContainer: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 10 },
+  badge: { paddingVertical: 6, paddingHorizontal: 12, borderRadius: 20, backgroundColor: '#fff' },
+  liveBadge: { borderColor: '#ef4444', borderWidth: 1 },
+  loadingBadge: { borderColor: '#ccc', borderWidth: 1 },
+  liveText: { color: '#ef4444', fontWeight: '800', fontSize: 12 },
+  loadingText: { marginLeft: 6, color: '#555', fontSize: 12 },
   loadingRow: { flexDirection: 'row', alignItems: 'center' },
-  loadingBadgeText: { marginLeft: 6, color: '#555', fontWeight: '600' },
-  viewerBadge: {
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    paddingVertical: 4,
-    paddingHorizontal: 12,
-    borderRadius: 20,
-    marginTop: 8,
-  },
-  viewerBadgeText: { color: '#fff', fontSize: 12, fontWeight: '600' },
+  viewerBadge: { backgroundColor: 'rgba(0,0,0,0.7)', paddingVertical: 6, paddingHorizontal: 12, borderRadius: 20 },
+  viewerText: { color: '#fff', fontSize: 12, fontWeight: '600' },
   stopButton: {
-    flexDirection: 'row',
     backgroundColor: '#ef4444',
-    padding: 15,
-    borderRadius: 10,
-    marginTop: 14,
+    padding: 16,
+    borderRadius: 16,
+    marginTop: 'auto',
+    marginBottom: 40,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    elevation: 5,
+    shadowColor: '#ef4444',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    elevation: 8,
   },
-  buttonText: { color: '#fff', fontWeight: 'bold', marginLeft: 8 },
+  buttonText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
 });

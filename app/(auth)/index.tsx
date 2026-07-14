@@ -1,7 +1,8 @@
+import { useApp } from "@/src/context/AppContext";
 import { authService } from "@/src/services/authService";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -19,32 +20,21 @@ import {
 import Svg, { Path } from "react-native-svg";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
-const HEADER_HEIGHT = 220;
 const CURVE_HEIGHT = 50;
 
 export default function LoginScreen() {
   const router = useRouter();
+  const { login } = useApp();
 
-  const [checkingSession, setCheckingSession] = useState(true);
+  // ✅ FIX: `checkingSession` state পুরোপুরি বাদ দেওয়া হলো — session চেক
+  // এখন শুধু AppContext/RootLayout এ একবারই হয় (cold start এ)। এই স্ক্রিন
+  // মাউন্ট হওয়ার সাথে সাথে RootLayout ইতিমধ্যে জানে user logged-in কিনা,
+  // তাই এখানে আবার AsyncStorage চেক করে আলাদা loading spinner দেখানোর
+  // দরকার নেই। এতে logout থেকে এই স্ক্রিনে এলে কোনো flash হয় না।
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-
-  // ✅ আগে থেকে login করা আছে কিনা চেক করা হচ্ছে
-  useEffect(() => {
-    const checkSession = async () => {
-      const loggedIn = await authService.isLoggedIn();
-      console.log('CHJECK LOGIN',loggedIn);
-      
-      if (loggedIn) {
-        router.replace("/(tabs)/home");
-      } else {
-        setCheckingSession(false);
-      }
-    };
-    checkSession();
-  }, []);
 
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) {
@@ -55,10 +45,14 @@ export default function LoginScreen() {
     setLoading(true);
     try {
       const data = await authService.login(email.trim(), password);
-      console.log("data user",data);
-      
 
       if (data.success) {
+        // ✅ FIX: AppContext.login() কল করা হচ্ছে — এটা user state আপডেট
+        // করবে + storage এ সেভ করবে + ব্যাকগ্রাউন্ডে ডেটা রিফ্রেশ করবে।
+        // authService.login() নিজেও storage এ লিখেছে (পুরনো কোড রাখা
+        // অবস্থায়), কিন্তু AppContext.login() সেই একই key তে আবার লিখে
+        // in-memory state আপডেট করে, যেটা RootLayout/Drawer কে জানায়।
+        await login(data.user, data.token, data.role);
         router.replace("/(tabs)/home");
       } else {
         Alert.alert("লগইন ব্যর্থ", data.message || "ইমেইল/পাসওয়ার্ড সঠিক নয়");
@@ -69,14 +63,6 @@ export default function LoginScreen() {
       setLoading(false);
     }
   };
-
-  if (checkingSession) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#0B6BFF" />
-      </View>
-    );
-  }
 
   return (
     <SafeAreaView style={styles.safeArea}>

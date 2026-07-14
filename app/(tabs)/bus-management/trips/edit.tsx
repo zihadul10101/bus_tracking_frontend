@@ -7,7 +7,6 @@ import { colors } from '../../../../constants/colors';
 
 const AVAILABLE_DAYS = ['Sat', 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
 
-// ব্যাকএন্ড ফুল-ফর্মকে ফ্রন্টএন্ড শর্ট-ফর্মে রূপান্তর করার রিভার্স ম্যাপার
 const REVERSE_DAY_MAPPER: { [key: string]: string } = {
   'Saturday': 'Sat', 'Sunday': 'Sun', 'Monday': 'Mon', 'Tuesday': 'Tue',
   'Wednesday': 'Wed', 'Thursday': 'Thu', 'Friday': 'Fri'
@@ -156,7 +155,7 @@ export default function EditTripScreen() {
       const res = await busService.updateTrip(busId as string, tripId as string, updatedTripData);
       if (res.success || res.data) {
         Alert.alert("Updated", "Trip schedule updated successfully!");
-        router.back();
+        router.replace(`/(tabs)/bus-management/${busId}`);
       }
     } catch (err: any) {
       Alert.alert("Error", err.userMessage || err.message || "Failed to update trip");

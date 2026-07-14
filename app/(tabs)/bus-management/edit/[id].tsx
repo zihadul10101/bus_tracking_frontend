@@ -6,7 +6,7 @@ import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TextInput, Touc
 import { colors } from '../../../../constants/colors';
 
 export default function EditBusScreen() {
-  const { id } = useLocalSearchParams(); // ডাইনামিক [id] রিসিভ করা হচ্ছে
+  const { id } = useLocalSearchParams(); 
   const router = useRouter();
   
   const [fetching, setFetching] = useState(true);

@@ -1,3 +1,4 @@
+import { useApp } from '@/src/context/AppContext';
 import { driverService } from '@/src/services/driverService';
 import { useRouter } from 'expo-router';
 import { ArrowLeft, Eye, EyeOff, Lock, User } from 'lucide-react-native';
@@ -6,7 +7,9 @@ import {
     ActivityIndicator,
     Alert,
     Dimensions,
+    KeyboardAvoidingView, // ✅ NEW
     Platform,
+    ScrollView, // ✅ NEW
     StyleSheet,
     Text,
     TextInput,
@@ -16,11 +19,9 @@ import {
 
 const { height } = Dimensions.get('window');
 
-
-
-
 export default function DriverLoginScreen() {
     const router = useRouter();
+    const { login } = useApp();
     const [loginName, setLoginName] = useState('');
     const [password, setPassword] = useState('');
     const [secureText, setSecureText] = useState(true);
@@ -28,47 +29,32 @@ export default function DriverLoginScreen() {
 
     const handleDriverLogin = async () => {
         if (!loginName || !password) {
-            Alert.alert(
-                "Required",
-                "Please enter driver ID and password"
-            );
+            Alert.alert("Required", "Please enter driver ID and password");
             return;
         }
 
         try {
             setLoading(true);
 
-            const result = await driverService.login(
-                loginName.trim(),
-                password
-            );
+            const result = await driverService.login(loginName.trim(), password);
             console.log("driver res", result);
 
-
             if (!result.success) {
-                Alert.alert(
-                    "Login Failed",
-                    result.message
-                );
+                Alert.alert("Login Failed", result.message);
                 return;
             }
+
+            await login(result.data, result.token, 'driver');
 
             Alert.alert(
                 "Success!",
                 `Welcome back, ${result.data.name}`,
-                [
-                    {
-                        text: "OK",
-                        onPress: () =>
-                            router.replace("/(tabs)/home"),
-                    },
-                ]
+                [{ text: "OK", onPress: () => router.replace("/(tabs)/home") }]
             );
         } catch (error: any) {
             Alert.alert(
                 "Network Error",
-                error.response?.data?.message ??
-                "Unable to connect to server."
+                error.response?.data?.message ?? "Unable to connect to server."
             );
         } finally {
             setLoading(false);
@@ -76,174 +62,130 @@ export default function DriverLoginScreen() {
     };
 
     return (
-        <View style={styles.container}>
-            {/* Deep University Blue Header Section */}
-            <View style={styles.headerContainer}>
-                <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-                    <ArrowLeft size={24} color="#fff" />
-                </TouchableOpacity>
-                <Text style={styles.headerTitle}>Driver Portal</Text>
-                <Text style={styles.headerSubtitle}>Enter your credentials to start your trip</Text>
-            </View>
+        // ✅ FIX: KeyboardAvoidingView যোগ করা হলো — keyboard ওপেন হলে iOS এ
+        // padding দিয়ে content উপরে ঠেলে দেবে, Android এ height adjust করবে
+        // (Android manifest এ windowSoftInputMode ঠিক থাকলে এমনিতেই resize হয়,
+        // তাই এখানে undefined রাখা হলো iOS এর জন্য 'padding' behavior সহ)
+        <KeyboardAvoidingView
+            style={styles.container}
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+        >
+            {/* ✅ FIX: ScrollView যোগ করা হলো — ছোট স্ক্রিনে keyboard ওপেন
+                হলে নিচের input/button গুলো keyboard এর পেছনে চাপা পড়ে
+                যাওয়ার বদলে scroll করে দেখা যাবে। bounces={false} দিয়ে
+                iOS এ over-scroll bounce বন্ধ রাখা হলো একটা static form
+                screen এর জন্য এটাই স্বাভাবিক অনুভূতি দেয়। */}
+            <ScrollView
+                contentContainerStyle={styles.scrollContent}
+                bounces={false}
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
+            >
+                <View style={styles.headerContainer}>
+                    <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+                        <ArrowLeft size={24} color="#fff" />
+                    </TouchableOpacity>
+                    <Text style={styles.headerTitle}>Driver Portal</Text>
+                    <Text style={styles.headerSubtitle}>Enter your credentials to start your trip</Text>
+                </View>
 
-            {/* Floating Card UI Element */}
-            <View style={styles.formCardContainer}>
-                <View style={styles.formCard}>
+                <View style={styles.formCardContainer}>
+                    <View style={styles.formCard}>
+                        <Text style={styles.inputLabel}>Driver ID / Login Name</Text>
+                        <View style={styles.inputWrapper}>
+                            <User size={20} color="#9ca3af" style={styles.inputIcon} />
+                            <TextInput
+                                placeholder="Enter login name"
+                                placeholderTextColor="#9ca3af"
+                                style={styles.inputField}
+                                value={loginName}
+                                onChangeText={setLoginName}
+                                autoCapitalize="none"
+                                editable={!loading}
+                                returnKeyType="next"
+                            />
+                        </View>
 
-                    {/* Driver ID Input */}
-                    <Text style={styles.inputLabel}>Driver ID / Login Name</Text>
-                    <View style={styles.inputWrapper}>
-                        <User size={20} color="#9ca3af" style={styles.inputIcon} />
-                        <TextInput
-                            placeholder="Enter login name"
-                            placeholderTextColor="#9ca3af"
-                            style={styles.inputField}
-                            value={loginName}
-                            onChangeText={setLoginName}
-                            autoCapitalize="none"
-                        />
-                    </View>
+                        <Text style={styles.inputLabel}>Security Password</Text>
+                        <View style={styles.inputWrapper}>
+                            <Lock size={20} color="#9ca3af" style={styles.inputIcon} />
+                            <TextInput
+                                placeholder="••••••••"
+                                placeholderTextColor="#9ca3af"
+                                secureTextEntry={secureText}
+                                style={styles.inputField}
+                                value={password}
+                                onChangeText={setPassword}
+                                autoCapitalize="none"
+                                editable={!loading}
+                                returnKeyType="done"
+                                onSubmitEditing={handleDriverLogin}
+                            />
+                            <TouchableOpacity onPress={() => setSecureText(!secureText)}>
+                                {secureText ? <Eye size={20} color="#6b7280" /> : <EyeOff size={20} color="#6b7280" />}
+                            </TouchableOpacity>
+                        </View>
 
-                    {/* Security Password Input */}
-                    <Text style={styles.inputLabel}>Security Password</Text>
-                    <View style={styles.inputWrapper}>
-                        <Lock size={20} color="#9ca3af" style={styles.inputIcon} />
-                        <TextInput
-                            placeholder="••••••••"
-                            placeholderTextColor="#9ca3af"
-                            secureTextEntry={secureText}
-                            style={styles.inputField}
-                            value={password}
-                            onChangeText={setPassword}
-                            autoCapitalize="none"
-                        />
-                        <TouchableOpacity onPress={() => setSecureText(!secureText)}>
-                            {secureText ? <Eye size={20} color="#6b7280" /> : <EyeOff size={20} color="#6b7280" />}
+                        <TouchableOpacity
+                            style={[styles.primaryButton, loading && styles.buttonDisabled]}
+                            onPress={handleDriverLogin}
+                            disabled={loading}
+                        >
+                            {loading ? (
+                                <ActivityIndicator color="#fff" />
+                            ) : (
+                                <Text style={styles.buttonText}>Start Session</Text>
+                            )}
+                        </TouchableOpacity>
+
+                        <TouchableOpacity onPress={() => router.push('/(auth)')} style={styles.footerLinkRow}>
+                            <Text style={styles.footerText}>Regular user login? </Text>
+                            <Text style={styles.linkText}>Go back</Text>
                         </TouchableOpacity>
                     </View>
-
-                    {/* Start Session Action Button */}
-                    <TouchableOpacity
-                        style={[styles.primaryButton, loading && styles.buttonDisabled]}
-                        onPress={handleDriverLogin}
-                        disabled={loading}
-                    >
-                        {loading ? (
-                            <ActivityIndicator color="#fff" />
-                        ) : (
-                            <Text style={styles.buttonText}>Start Session</Text>
-                        )}
-                    </TouchableOpacity>
-
-                    <TouchableOpacity onPress={() => router.push('/(auth)')} style={styles.footerLinkRow}>
-                        <Text style={styles.footerText}>Regular user login? </Text>
-                        <Text style={styles.linkText}>Go back</Text>
-                    </TouchableOpacity>
                 </View>
-            </View>
-        </View>
+            </ScrollView>
+        </KeyboardAvoidingView>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: '#004b8d'
-    },
+    container: { flex: 1, backgroundColor: '#004b8d' },
+    scrollContent: { flexGrow: 1 }, // ✅ NEW — content flex এ full height নেবে, scroll দরকার হলে scroll করবে
     headerContainer: {
-        height: height * 0.32,
-        paddingHorizontal: 24,
-        justifyContent: 'center',
+        height: height * 0.32, paddingHorizontal: 24, justifyContent: 'center',
         paddingTop: Platform.OS === 'ios' ? 50 : 30
     },
-    backButton: {
-        alignSelf: 'flex-start',
-        marginBottom: 16
-    },
-    headerTitle: {
-        fontSize: 36,
-        fontWeight: 'bold',
-        color: '#fff',
-        letterSpacing: 0.5
-    },
-    headerSubtitle: {
-        fontSize: 15,
-        color: 'rgba(255,255,255,0.85)',
-        marginTop: 8
-    },
+    backButton: { alignSelf: 'flex-start', marginBottom: 16 },
+    headerTitle: { fontSize: 36, fontWeight: 'bold', color: '#fff', letterSpacing: 0.5 },
+    headerSubtitle: { fontSize: 15, color: 'rgba(255,255,255,0.85)', marginTop: 8 },
     formCardContainer: {
-        flex: 1,
-        backgroundColor: '#f8fafc',
-        borderTopLeftRadius: 30,
-        borderTopRightRadius: 30,
-        paddingHorizontal: 20,
-        paddingTop: 24,
+        flex: 1, backgroundColor: '#f8fafc', borderTopLeftRadius: 30,
+        borderTopRightRadius: 30, paddingHorizontal: 20, paddingTop: 24,
     },
     formCard: {
-        backgroundColor: '#fff',
-        borderRadius: 28,
-        paddingHorizontal: 24,
-        paddingVertical: 28,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.08,
-        shadowRadius: 12,
-        elevation: 4,
-        marginBottom: 20
+        backgroundColor: '#fff', borderRadius: 28, paddingHorizontal: 24,
+        paddingVertical: 28, shadowColor: '#000', shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08, shadowRadius: 12, elevation: 4, marginBottom: 20
     },
-    inputLabel: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#374151',
-        marginBottom: 10,
-        marginTop: 14
-    },
+    inputLabel: { fontSize: 14, fontWeight: '600', color: '#374151', marginBottom: 10, marginTop: 14 },
     inputWrapper: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#f3f4f6',
-        borderRadius: 14,
-        paddingHorizontal: 16,
-        height: 56
+        flexDirection: 'row', alignItems: 'center', backgroundColor: '#f3f4f6',
+        borderRadius: 14, paddingHorizontal: 16, height: 56
     },
-    inputIcon: {
-        marginRight: 12
-    },
-    inputField: {
-        flex: 1,
-        color: '#1f2937',
-        fontSize: 15
-    },
+    inputIcon: { marginRight: 12 },
+    inputField: { flex: 1, color: '#1f2937', fontSize: 15 },
     primaryButton: {
-        backgroundColor: '#004b8d',
-        height: 54,
-        borderRadius: 14,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginTop: 32
+        backgroundColor: '#004b8d', height: 54, borderRadius: 14,
+        justifyContent: 'center', alignItems: 'center', marginTop: 32
     },
-    buttonDisabled: {
-        backgroundColor: '#9ca3af'
-    },
-    buttonText: {
-        color: '#fff',
-        fontSize: 16,
-        fontWeight: 'bold'
-    },
+    buttonDisabled: { backgroundColor: '#9ca3af' },
+    buttonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
     footerLinkRow: {
-        flexDirection: 'row',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginTop: 30,
-        marginBottom: Platform.OS === 'ios' ? 10 : 0
+        flexDirection: 'row', justifyContent: 'center', alignItems: 'center',
+        marginTop: 30, marginBottom: Platform.OS === 'ios' ? 10 : 0
     },
-    footerText: {
-        color: '#6b7280',
-        fontSize: 14
-    },
-    linkText: {
-        color: '#004b8d',
-        fontWeight: 'bold',
-        fontSize: 14
-    }
+    footerText: { color: '#6b7280', fontSize: 14 },
+    linkText: { color: '#004b8d', fontWeight: 'bold', fontSize: 14 }
 });

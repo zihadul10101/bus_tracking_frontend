@@ -1,17 +1,14 @@
-
+// ✅ FIX: locationService.ts কে side-effect import হিসেবে সবার আগে import
+// করা হচ্ছে — এতে app চালু হওয়ার সাথে সাথেই TaskManager.defineTask()
+// register হয়ে যাবে, driver AssignBusScreen এ যাওয়ার আগেই। এটা না করলে
+// production Hermes bundle এ module evaluation order আলাদা হয়ে task
+// define হওয়ার আগেই startLocationUpdatesAsync কল হয়ে crash করতে পারে।
 import { colors } from "@/constants/colors";
 import CustomDrawerContent from "@/src/components/CustomDrawer";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { AppProvider, useApp } from "@/src/context/AppContext";
 import NetInfo from "@react-native-community/netinfo";
-import {
-  useSegments
-} from "expo-router";
 import { Drawer } from "expo-router/drawer";
-import React, {
-  useCallback,
-  useEffect,
-  useState,
-} from "react";
+import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   StyleSheet,
@@ -20,73 +17,36 @@ import {
 } from "react-native";
 import { Provider as PaperProvider } from "react-native-paper";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import NoInternetScreen from "../components/NoInternetScreen";
+import '../src/services/locationService';
 
-
-
-export default function RootLayout() {
+function RootLayoutContent() {
   const { width } = useWindowDimensions();
+  const responsiveWidth = width > 600 ? 340 : width * 0.78;
 
-  const responsiveWidth =
-    width > 600 ? 340 : width * 0.78;
-
-  const segments = useSegments();
-
-  const [isAuthenticated, setIsAuthenticated] =
-    useState<boolean | null>(null);
-
-  const [isConnected, setIsConnected] =
-    useState(true);
-
-  // _layout.tsx
-  const checkAuth = useCallback(async () => {
-    try {
-      const token = await AsyncStorage.getItem("userToken");
-      setIsAuthenticated(!!token);
-      // ❌ router.replace(...) কিছু করবেন না এখানে
-    } catch (error) {
-      console.log("Auth Error:", error);
-      setIsAuthenticated(false);
-    }
-  }, []);
+  const { isAuthenticated, loading } = useApp();
+  const [isConnected, setIsConnected] = useState(true);
 
   useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
-
-  useEffect(() => {
-    const unsubscribe = NetInfo.addEventListener(
-      (state) => {
-        const connected =
-          state.isConnected === true &&
-          state.isInternetReachable !== false;
-
-        setIsConnected(connected);
-      }
-    );
-
+    const unsubscribe = NetInfo.addEventListener((state) => {
+      const connected =
+        state.isConnected === true && state.isInternetReachable !== false;
+      setIsConnected(connected);
+    });
     return () => unsubscribe();
   }, []);
 
-  // Show Internet Screen
-  if (!isConnected) {
-    return <NoInternetScreen />;
-  }
 
-  // Loading
-  if (isAuthenticated === null) {
+  // ✅ AppContext এখনো offline cache লোড করছে — এই সময়টায় isAuthenticated
+  // এর মান ভরসাযোগ্য না, তাই শুধু `loading` দিয়েই গার্ড করা হচ্ছে
+  if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator
-          size="large"
-          color={colors?.primary || "#007AFF"}
-        />
+        <ActivityIndicator size="large" color={colors?.primary || "#007AFF"} />
       </View>
     );
   }
 
   return (
-
     <PaperProvider>
       <SafeAreaProvider>
         <Drawer
@@ -117,7 +77,15 @@ export default function RootLayout() {
         </Drawer>
       </SafeAreaProvider>
     </PaperProvider>
+  );
+}
 
+
+export default function RootLayout() {
+  return (
+    <AppProvider>
+      <RootLayoutContent />
+    </AppProvider>
   );
 }
 

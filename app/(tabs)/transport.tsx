@@ -1,5 +1,5 @@
 import { busService } from '@/src/services/busService';
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   RefreshControl,
@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useCachedResource } from '../../hooks/useCachedResource'; // path adjust করুন আপনার hooks ফোল্ডার অনুযায়ী
 
 
 interface Stop {
@@ -39,67 +40,50 @@ interface Bus {
 }
 
 export default function TransportPage() {
-  const [buses, setBuses] = useState<Bus[]>([]);
+
+  const {
+    data: buses,
+    loading,
+    refreshing,
+    error,
+    refresh,
+  } = useCachedResource<Bus[]>(
+    '@transport_buses', // cache key
+    async () => {
+      const result = await busService.getAllBuses();
+      if (!result.success) throw new Error(result.message || 'Failed to load bus information.');
+      return result.data;
+    },
+    [] // default value যতক্ষণ cache/network কিছুই না আসে
+  );
+
   const [selectedBus, setSelectedBus] = useState<Bus | null>(null);
   const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+
+
 
   useEffect(() => {
-    fetchBuses();
-  }, []);
+    if (!buses || buses.length === 0) return;
 
-  const fetchBuses = async (isRefreshingCall = false) => {
-    try {
-      setError(null);
+    setSelectedBus((prevBus) => {
+      const stillExists = prevBus ? buses.find((b) => b._id === prevBus._id) : null;
+      const nextBus = stillExists || buses[0];
 
-      const result = await busService.getAllBuses();
+      setSelectedTrip((prevTrip) => {
+        if (!nextBus.trips || nextBus.trips.length === 0) return null;
+        const tripStillExists = prevTrip
+          ? nextBus.trips.find((t) => t._id === prevTrip._id)
+          : null;
+        return tripStillExists || nextBus.trips[0];
+      });
 
-      if (result.success && result.data.length > 0) {
-        setBuses(result.data);
-
-
-        if (isRefreshingCall && selectedBus) {
-          const currentUpdatedBus = result.data.find((b: Bus) => b._id === selectedBus._id);
-          if (currentUpdatedBus) {
-            setSelectedBus(currentUpdatedBus);
-            if (selectedTrip) {
-              const updatedTrip = currentUpdatedBus.trips.find((t: Trip) => t._id === selectedTrip._id);
-              setSelectedTrip(updatedTrip || currentUpdatedBus.trips[0]);
-            }
-          }
-        } else {
-
-          setSelectedBus(result.data[0]);
-          if (result.data[0].trips.length > 0) {
-            setSelectedTrip(result.data[0].trips[0]);
-          }
-        }
-      } else if (!result.success) {
-        setError(result.message || 'Failed to load bus information.');
-      }
-    } catch (err: any) {
-      console.log('Fetch Error:', err);
-      setError(err.message || 'An issue has occurred; please try again.');
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
-
-  const onRefresh = useCallback(() => {
-    setRefreshing(true);
-    fetchBuses(true);
-  }, [selectedBus, selectedTrip]);
+      return nextBus;
+    });
+  }, [buses]);
 
   const handleBusSelect = (bus: Bus) => {
     setSelectedBus(bus);
-    if (bus.trips && bus.trips.length > 0) {
-      setSelectedTrip(bus.trips[0]);
-    } else {
-      setSelectedTrip(null);
-    }
+    setSelectedTrip(bus.trips && bus.trips.length > 0 ? bus.trips[0] : null);
   };
 
   const getTripLabel = (trip: Trip, index: number) => {
@@ -111,6 +95,7 @@ export default function TransportPage() {
     return `বিকাল/সন্ধ্যা (Trip ${index + 1})`;
   };
 
+  // ✅ শুধু প্রথমবার cache read এর সময় (মিলিসেকেন্ড কয়েকের) spinner দেখাবে
   if (loading) {
     return (
       <View style={styles.loader}>
@@ -119,14 +104,14 @@ export default function TransportPage() {
     );
   }
 
-  // ✅ basic error state so a failed fetch isn't just a silent blank screen
+  // Cache-ও খালি + network-ও fail — তখনই শুধু error state দেখাবে
   if (error && buses.length === 0) {
     return (
       <View style={styles.loader}>
         <Text style={{ color: '#ef4444', marginBottom: 12, textAlign: 'center', paddingHorizontal: 20 }}>
           {error}
         </Text>
-        <TouchableOpacity onPress={() => { setLoading(true); fetchBuses(); }}>
+        <TouchableOpacity onPress={refresh}>
           <Text style={{ color: '#2563eb', fontWeight: '700' }}>Try again.</Text>
         </TouchableOpacity>
       </View>
@@ -183,7 +168,7 @@ export default function TransportPage() {
           showsVerticalScrollIndicator={false}
           style={styles.detailsContainer}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={["#2563eb"]} tintColor="#2563eb" />
+            <RefreshControl refreshing={refreshing} onRefresh={refresh} colors={["#2563eb"]} tintColor="#2563eb" />
           }
         >
           <View style={styles.mainCard}>

@@ -1,7 +1,7 @@
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { Calendar, Clock, Edit, Edit3, MapPin, Plus, Trash2 } from 'lucide-react-native';
-import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useCallback, useRef, useState } from 'react';
+import { ActivityIndicator, Alert, FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { colors } from '../../../constants/colors';
 import { busService } from '../../../src/services/busService';
 import { Bus, Trip } from '../../../src/types/bus';
@@ -11,21 +11,37 @@ export default function BusDetailsScreen() {
   const router = useRouter();
   const [bus, setBus] = useState<Bus | null>(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  // প্রথমবার focus-এ full loader দেখাবে, তারপরের বার (edit/create থেকে back করলে) silent refetch
+  const hasLoadedOnce = useRef(false);
 
-  const fetchBusDetails = async () => {
+  // silent=true হলে full-screen loader না দেখিয়ে শুধু pull-to-refresh spinner দেখাবে
+  const fetchBusDetails = async (silent = false) => {
     try {
-      setLoading(true);
+      if (silent) setRefreshing(true);
+      else setLoading(true);
+
       const res = await busService.getBusById(id as string);
       if (res.success) setBus(res.data);
     } catch (err: any) {
       Alert.alert("Error", err.userMessage || err.message || "Failed to load details");
     } finally {
-      setLoading(false);
+      if (silent) setRefreshing(false);
+      else setLoading(false);
     }
   };
 
-  useEffect(() => {
-    if (id) fetchBusDetails();
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!id) return;
+      fetchBusDetails(hasLoadedOnce.current); // প্রথমবার loader, পরে silent
+      hasLoadedOnce.current = true;
+    }, [id])
+  );
+
+  const onRefresh = useCallback(() => {
+    if (id) fetchBusDetails(true);
   }, [id]);
 
   // 🚌 ১. বাস এডিট ফাইলে নেভিগেশন (ক্লিন সাব-ফোল্ডার পাথ)
@@ -105,6 +121,14 @@ export default function BusDetailsScreen() {
       <FlatList
         data={bus.trips}
         keyExtractor={(item) => item._id}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[colors.primary]}
+            tintColor={colors.primary}
+          />
+        }
         ListEmptyComponent={<Text style={styles.emptyText}>No trips allocated to this bus yet.</Text>}
         renderItem={({ item }) => (
           <View style={styles.tripCard}>

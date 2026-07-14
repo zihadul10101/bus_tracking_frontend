@@ -35,10 +35,6 @@ export default function DriversList() {
       });
   };
 
-  // ২. ডাটাবেজের সমস্ত একটিভ বাসের লিস্ট নিয়ে আসা
-  // 🆕 was a raw fetch() to a hardcoded LAN IP with manual HTML/JSON sniffing —
-  // busService.getAllBuses() already handles the base URL, auth header, and
-  // error shape consistently with the rest of the app.
   const fetchAllBuses = async () => {
     try {
       const res = await busService.getAllBuses();
@@ -66,12 +62,6 @@ export default function DriversList() {
     fetchAllBuses();
   }, []);
 
-  // 🚌 বাস অ্যাসাইন করার মূল ফাংশন
-  // 🆕 was posting with a hardcoded admin JWT pasted directly in source code —
-  // that token expires in 7 days AND anyone reading this file has a live admin
-  // credential. driverService.assignBus() relies on the api instance's own
-  // auth handling (same as every other authenticated call in the app), so
-  // this now always uses the CURRENT logged-in admin's real token.
   const handleAssignBus = async (busId: string, busName: string) => {
     if (!selectedDriver) return;
 

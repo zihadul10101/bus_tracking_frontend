@@ -2,7 +2,7 @@ import RefreshContainer from '@/components/RefreshContainer';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect, useRouter } from 'expo-router';
 import React, { useCallback, useState } from 'react';
-import { ActivityIndicator, Alert, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Platform, StyleSheet, Text, View } from 'react-native';
 
 interface UserData {
   name: string;
@@ -52,28 +52,6 @@ export default function Profile() {
   );
 
 
-  const handleLogout = () => {
-    Alert.alert(
-      'Logout Confirmation',
-      'Are you sure you want to log out of the account?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Logout',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await AsyncStorage.removeItem('userData');
-              setUser(null);
-              router.replace('/(auth)'); 
-            } catch (error) {
-              console.error('Error during logout:', error);
-            }
-          },
-        },
-      ]
-    );
-  };
 
   if (loading) {
     return (
@@ -128,10 +106,7 @@ export default function Profile() {
         )}
       </View>
 
-      {/* 🚪 লগআউট বাটন */}
-      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-        <Text style={styles.logoutButtonText}>লগআউট করুন</Text>
-      </TouchableOpacity>
+   
     </RefreshContainer>
   );
 }

@@ -110,9 +110,10 @@ export default function CreateTripScreen() {
       setLoading(true);
       const res = await busService.addTrip(busId as string, tripData as any);
       
+         
       if (res.success || res.data) {
         Alert.alert("Success", "New trip with multiple stops added successfully!");
-        router.back();
+       router.replace(`/(tabs)/bus-management/${busId}`);
       }
     } catch (err: any) {
       Alert.alert("Error", err.userMessage || err.message || "Failed to create trip");

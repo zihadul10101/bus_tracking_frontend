@@ -1,6 +1,6 @@
 import { colors } from '@/constants/colors';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { DrawerContentScrollView, DrawerItem, useDrawerStatus } from '@react-navigation/drawer';
+import { useApp } from '@/src/context/AppContext';
+import { DrawerContentScrollView, DrawerItem } from '@react-navigation/drawer';
 import { router, usePathname } from 'expo-router';
 
 import {
@@ -21,13 +21,7 @@ import {
 } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { Platform, StyleSheet, Text, View } from 'react-native';
-import { authService } from '../services/authService';
 import researchService from '../services/research.service';
-
-interface UserData {
-  name: string;
-  role: 'super_admin' | 'sub_admin' | 'student' | 'driver';
-}
 
 const ROLE_LABELS: Record<string, string> = {
   super_admin: 'Super Admin',
@@ -37,30 +31,14 @@ const ROLE_LABELS: Record<string, string> = {
 };
 
 export default function CustomDrawerContent(props: any) {
-  const [user, setUser] = useState<UserData | null>(null);
+  // ✅ FIX: user এখন AppContext থেকে আসছে — নিজে থেকে আর
+  // AsyncStorage.getItem('userData') কল করার দরকার নেই। এতে logout করলে
+  // সাথে সাথেই (state change এ) drawer রি-রেন্ডার হয়ে user info সাফ হয়ে
+  // যাবে, কোনো manual `fetchUser`/navigation-listener লাগবে না।
+  const { user, logout } = useApp();
   const [researchUnread, setResearchUnread] = useState(0);
   const pathname = usePathname();
 
-  const drawerStatus = useDrawerStatus();
-  const isDrawerOpen = drawerStatus === 'open';
-
-
-  const fetchUser = async (): Promise<UserData | null> => {
-    try {
-      const storedData = await AsyncStorage.getItem('userData');
-      if (storedData) {
-        const parsed = JSON.parse(storedData);
-        setUser(parsed);
-        return parsed;
-      } else {
-        setUser(null);
-        return null;
-      }
-    } catch (error) {
-      console.error("Error fetching user data in drawer:", error);
-      return null;
-    }
-  };
   const fetchResearchUnreadCount = async (role: string) => {
     if (role !== 'student') return;
     try {
@@ -71,40 +49,23 @@ export default function CustomDrawerContent(props: any) {
     }
   };
 
-  // ✅ single source of truth — duplicate useEffect ব্লক সরানো হয়েছে
+  // ✅ user বদলালে (login/logout/refresh) unread count রিফ্রেশ হবে
   useEffect(() => {
-    if (isDrawerOpen) {
-      fetchUser().then((freshUser) => {
-        if (freshUser?.role) fetchResearchUnreadCount(freshUser.role);
-      });
-    }
-  }, [isDrawerOpen]);
-
-  useEffect(() => {
-    const unsubscribe = props.navigation.addListener('state', () => {
-      fetchUser().then((freshUser) => {
-        if (freshUser?.role) fetchResearchUnreadCount(freshUser.role);
-      });
-    });
-    return unsubscribe;
-  }, [props.navigation]);
+    if (user?.role) fetchResearchUnreadCount(user.role);
+    else setResearchUnread(0);
+  }, [user?.role]);
 
   const handleLogout = async () => {
     try {
-      setUser(null);
-      await authService.logout();
+      await logout();                  // ✅ AppContext state + storage দুটোই ক্লিয়ার হয়
       props.navigation.closeDrawer();
-
-      setTimeout(() => {
-        router.replace('/(auth)');
-      }, 100);
+      router.replace('/(auth)');        // login screen এ পাঠাও
     } catch (error) {
       console.error("Logout failed:", error);
     }
   };
 
   const currentRole = user?.role;
-
   const roleLabel = currentRole ? (ROLE_LABELS[currentRole] || currentRole.toUpperCase()) : '';
 
   const primaryColor = colors?.primary || '#007AFF';
@@ -145,7 +106,6 @@ export default function CustomDrawerContent(props: any) {
               <Text style={styles.profileName} numberOfLines={1}>
                 {user?.name || 'User Profile'}
               </Text>
-              {/* ✅ role লোড না হওয়া পর্যন্ত badge-ই রেন্ডার হবে না */}
               {currentRole && (
                 <View style={styles.roleBadge}>
                   <ShieldCheck size={11} color="#fff" style={{ marginRight: 4 }} />
