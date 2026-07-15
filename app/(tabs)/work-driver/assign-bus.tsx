@@ -20,13 +20,13 @@ export default function AssignBusScreen() {
   const [activeTab, setActiveTab] = useState<TabType>('running');
 
   const [isSharing, setIsSharing] = useState(false);
-  const [isStarting, setIsStarting] = useState(false); // waiting for start-trip ack
+  const [isStarting, setIsStarting] = useState(false);
   const [currentLocation, setCurrentLocation] = useState<any>(null);
   const [viewerCount, setViewerCount] = useState(0);
 
-  // Keep the location watcher subscription so we can actually stop it
+
   const locationSubscription = useRef<Location.LocationSubscription | null>(null);
-  // Guards against the start-trip ack never arriving (dead socket, server bug, etc.)
+
   const ackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useFocusEffect(useCallback(() => { fetchStoredDriverAndBus(); }, []));
@@ -45,7 +45,7 @@ export default function AssignBusScreen() {
       const parsedDriver = JSON.parse(storedUserData);
       setDriver(parsedDriver);
 
-      // The full bus object already lives in AsyncStorage alongside the driver
+
       if (parsedDriver.bus) {
         setBusData(parsedDriver.bus);
       }
@@ -57,8 +57,7 @@ export default function AssignBusScreen() {
     }
   };
 
-  // --------------------------------------------------------------
-  // Socket listeners: viewer count + driver online/offline recovery
+
   // --------------------------------------------------------------
   useEffect(() => {
     const roomId = busData?._id;
@@ -70,14 +69,10 @@ export default function AssignBusScreen() {
 
     const onDriverOffline = (data: { roomId: string; reason?: string }) => {
       if (data.roomId === roomId && data.reason === 'inactive') {
-        // Server marked us offline due to inactivity — location watcher
-        // probably died silently, so reflect that in the UI.
         setIsSharing(false);
       }
     };
 
-    // If the socket reconnects mid-trip (e.g. brief network drop),
-    // resume the same trip instead of losing driver/bus info server-side.
     const onConnect = () => {
       const driverId = driver?._id || driver?.id;
       if (isSharing && driverId) {
@@ -85,7 +80,6 @@ export default function AssignBusScreen() {
       }
     };
 
-    // Surface connection problems instead of failing silently
     const onConnectError = (err: any) => {
       console.log('Socket connect_error:', err?.message || err);
     };
@@ -103,7 +97,6 @@ export default function AssignBusScreen() {
     };
   }, [busData?._id, isSharing, driver]);
 
-  // Stop the GPS watcher and any pending ack timeout on unmount
   useEffect(() => {
     return () => {
       locationSubscription.current?.remove();

@@ -67,7 +67,8 @@ export default function ResearchScreen() {
           ResearchService.getTopResearchers(),
           ResearchService.getDepartmentWise(),
         ]);
-
+      console.log("all ",allResponse);
+      
       setPapers(allResponse.data || []);
       setLatest(latestResponse.data || []);
       setTopResearchers(topResponse.data || []);

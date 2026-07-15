@@ -2,13 +2,6 @@ import api from "../api";
 
 const BASE = "/entrepreneur";
 
-// 🆕 Shape of a single ad as returned by GET /ads and /ads/:id.
-// Optional fields are defensive — the slider UI falls back gracefully
-// if your backend doesn't populate business/contact info on every ad.
-// 🆕 image/logo fields can arrive as a plain string URL OR as an upload
-// object (e.g. Cloudinary-style { url, public_id }) depending on your
-// backend's response shape. Type it as `unknown`-ish here and normalize
-// at render time (see getImageUrl in AdsSlider.tsx) rather than assuming.
 type ImageField = string | { url?: string; secure_url?: string; uri?: string } | undefined;
 
 export interface Ad {

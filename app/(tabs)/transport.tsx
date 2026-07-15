@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { useCachedResource } from '../../hooks/useCachedResource'; // path adjust করুন আপনার hooks ফোল্ডার অনুযায়ী
+import { useCachedResource } from '../../hooks/useCachedResource';
 
 
 interface Stop {
@@ -54,7 +54,7 @@ export default function TransportPage() {
       if (!result.success) throw new Error(result.message || 'Failed to load bus information.');
       return result.data;
     },
-    [] // default value যতক্ষণ cache/network কিছুই না আসে
+    [] 
   );
 
   const [selectedBus, setSelectedBus] = useState<Bus | null>(null);
@@ -95,7 +95,7 @@ export default function TransportPage() {
     return `বিকাল/সন্ধ্যা (Trip ${index + 1})`;
   };
 
-  // ✅ শুধু প্রথমবার cache read এর সময় (মিলিসেকেন্ড কয়েকের) spinner দেখাবে
+  
   if (loading) {
     return (
       <View style={styles.loader}>
@@ -104,7 +104,7 @@ export default function TransportPage() {
     );
   }
 
-  // Cache-ও খালি + network-ও fail — তখনই শুধু error state দেখাবে
+
   if (error && buses.length === 0) {
     return (
       <View style={styles.loader}>

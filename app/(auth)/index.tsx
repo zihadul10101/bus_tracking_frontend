@@ -47,11 +47,7 @@ export default function LoginScreen() {
       const data = await authService.login(email.trim(), password);
 
       if (data.success) {
-        // ✅ FIX: AppContext.login() কল করা হচ্ছে — এটা user state আপডেট
-        // করবে + storage এ সেভ করবে + ব্যাকগ্রাউন্ডে ডেটা রিফ্রেশ করবে।
-        // authService.login() নিজেও storage এ লিখেছে (পুরনো কোড রাখা
-        // অবস্থায়), কিন্তু AppContext.login() সেই একই key তে আবার লিখে
-        // in-memory state আপডেট করে, যেটা RootLayout/Drawer কে জানায়।
+  
         await login(data.user, data.token, data.role);
         router.replace("/(tabs)/home");
       } else {

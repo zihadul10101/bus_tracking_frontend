@@ -26,14 +26,14 @@ export default function ActiveTripsList() {
   const fetchTrips = async () => {
     try {
       setError(null);
-      // ✅ locationService ব্যবহার করা হচ্ছে — auth headers + non-JSON response handling এখন api.ts এর interceptor-এ
+   
       const data = await locationService.getAllLiveRooms();
       if (data.success) {
         setTrips(data.activeRooms);
       }
     } catch (err: any) {
       console.error("Error:", err);
-      // ✅ api.ts এর response interceptor থেকে আসা user-friendly মেসেজ প্রাধান্য পাবে
+    
       setError(err.userMessage || err.message || 'সার্ভারে কানেক্ট করা যাচ্ছে না।');
     } finally {
       setLoading(false);
@@ -63,7 +63,7 @@ export default function ActiveTripsList() {
 
   if (loading) return <ActivityIndicator style={{ flex: 1 }} size="large" />;
 
-  // ✅ basic error state so a failed fetch isn't just a silent empty list
+
   if (error && trips.length === 0) {
     return (
       <View style={styles.container}>
@@ -85,7 +85,7 @@ export default function ActiveTripsList() {
         data={trips}
         renderItem={renderItem}
         keyExtractor={(item) => item.busId}
-        // এখানে রিফ্রেশ কন্ট্রোল যোগ করা হয়েছে
+      
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }

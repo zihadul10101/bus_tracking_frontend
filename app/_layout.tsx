@@ -1,8 +1,3 @@
-// ✅ FIX: locationService.ts কে side-effect import হিসেবে সবার আগে import
-// করা হচ্ছে — এতে app চালু হওয়ার সাথে সাথেই TaskManager.defineTask()
-// register হয়ে যাবে, driver AssignBusScreen এ যাওয়ার আগেই। এটা না করলে
-// production Hermes bundle এ module evaluation order আলাদা হয়ে task
-// define হওয়ার আগেই startLocationUpdatesAsync কল হয়ে crash করতে পারে।
 import { colors } from "@/constants/colors";
 import CustomDrawerContent from "@/src/components/CustomDrawer";
 import { AppProvider, useApp } from "@/src/context/AppContext";
@@ -36,8 +31,7 @@ function RootLayoutContent() {
   }, []);
 
 
-  // ✅ AppContext এখনো offline cache লোড করছে — এই সময়টায় isAuthenticated
-  // এর মান ভরসাযোগ্য না, তাই শুধু `loading` দিয়েই গার্ড করা হচ্ছে
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>

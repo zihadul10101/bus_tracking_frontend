@@ -9,12 +9,11 @@ export default function EditDriver() {
   const [loading, setLoading] = useState<boolean>(true);
   const [actionLoading, setActionLoading] = useState<boolean>(false);
 
-  // ফর্ম ফিল্ড স্টেটসমূহ
+
   const [name, setName] = useState('');
   const [mobile, setMobile] = useState('');
   const [licenseNumber, setLicenseNumber] = useState('');
-  const [password, setPassword] = useState(''); // 🔐 নতুন পাসওয়ার্ডের জন্য স্টেট
-
+  const [password, setPassword] = useState(''); 
   useEffect(() => {
     if (id) {
       setLoading(true);
@@ -47,7 +46,7 @@ export default function EditDriver() {
 
     setActionLoading(true);
     try {
-      // 💡 শুধুমাত্র ইনপুট ফিল্ড ফাঁকা না থাকলেই পাসওয়ার্ড অবজেক্টে পাঠানো হবে
+     
       const updatedFields: any = { name, mobile, licenseNumber };
       
       if (password.trim().length > 0) {
@@ -56,7 +55,7 @@ export default function EditDriver() {
           setActionLoading(false);
           return;
         }
-        updatedFields.password = password; // নতুন পাসওয়ার্ড যুক্ত করা হলো
+        updatedFields.password = password; 
       }
 
       await driverService.update(id, updatedFields);
@@ -99,7 +98,7 @@ export default function EditDriver() {
             <TextInput style={styles.input} value={licenseNumber} onChangeText={setLicenseNumber} placeholder="License" />
           </View>
 
-          {/* 🔐 নতুন পাসওয়ার্ড ইনপুট ফিল্ড */}
+       
           <View>
             <Text style={styles.label}>New Password (Optional)</Text>
             <TextInput 

@@ -27,7 +27,7 @@ export interface DriverCreateInput {
 const BASE = "/drivers";
 
 export const driverService = {
-  // সবগুলোই admin/driver directly interact করে — 🔴 CRITICAL, error দেখানো দরকার
+
 
   create: async (data: DriverCreateInput) => {
     try {

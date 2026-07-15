@@ -39,7 +39,6 @@ export default function EditTripScreen() {
     { stopName: '', time: '' },
   ]);
 
-  // 🔄 এক্সিস্টিং ট্রিপ ডাটা লোড এবং রিভার্স ফরম্যাটিং ইফেক্ট
   useEffect(() => {
     const loadTripDetails = async () => {
       try {
@@ -51,15 +50,14 @@ export default function EditTripScreen() {
           if (currentTrip) {
             setTripTitle(currentTrip.tripTitle);
             
-            // ব্যাকএন্ডের ফুল ডে গুলোকে ফ্রন্টএন্ড শর্ট ডে-তে রূপান্তর
+    
             if (currentTrip.days) {
               const mappedDays = currentTrip.days.map((d: string) => REVERSE_DAY_MAPPER[d] || d);
               setSelectedDays(mappedDays);
             }
 
-            // 🎯 ব্যাকএন্ডের stops অ্যারে থেকে ডাটা নিয়ে ফ্রন্টএন্ড স্টেট সাজানো
             if (currentTrip.stops && currentTrip.stops.length > 0) {
-              // ব্যাকএন্ডে কোনো কারণে সিকোয়েন্স উল্টাপাল্টা থাকলে তা সর্ট করে নেওয়া সেফগার্ড হিসেবে
+            
               const sortedStops = [...currentTrip.stops].sort((a: any, b: any) => a.sequence - b.sequence);
               const mappedStops = sortedStops.map((s: any) => ({
                 stopName: s.stopName,
@@ -82,7 +80,7 @@ export default function EditTripScreen() {
     if (busId && tripId) loadTripDetails();
   }, [busId, tripId]);
 
-  // ডায়নামিক স্টপ হ্যান্ডেল করার ফাংশনসমূহ
+
   const addStopField = () => {
     setStops([...stops, { stopName: '', time: '' }]);
   };
@@ -110,13 +108,12 @@ export default function EditTripScreen() {
   };
 
   const handleUpdateTrip = async () => {
-    // ১. বেসিক ভ্যালিডেশন
+
     if (!tripTitle.trim() || selectedDays.length === 0) {
       Alert.alert("Validation Error", "Please fill up Trip Title and select at least one day.");
       return;
     }
 
-    // ২. ডায়নামিক স্টপ প্রসেসিং এবং রেজেক্স ক্লিন ভ্যালিডেশন
     const formattedStops = [];
     for (let i = 0; i < stops.length; i++) {
       const stop = stops[i];
@@ -126,7 +123,7 @@ export default function EditTripScreen() {
         return;
       }
 
-      // স্পেস এবং টাইপো ফিক্সিং ক্লিনার
+
       const cleanTime = stop.time.trim() ? stop.time.trim().replace(/\s+/g, ' ').toUpperCase() : null;
 
       if (cleanTime && !TIME_REGEX.test(cleanTime)) {
@@ -137,13 +134,12 @@ export default function EditTripScreen() {
       formattedStops.push({
         stopName: stop.stopName.trim(),
         time: cleanTime,
-        sequence: i + 1 // ১, ২, ৩... ক্রমান্বয়ে সিকোয়েন্স জেনারেট হবে
+        sequence: i + 1 
       });
     }
 
     const formattedDays = selectedDays.map(day => DAY_MAPPER[day]);
 
-    // ৩. ব্যাকএন্ডের কাঙ্ক্ষিত পেলোড অবজেক্ট তৈরি
     const updatedTripData = {
       tripTitle: tripTitle.trim(),
       days: formattedDays,

@@ -22,6 +22,8 @@ interface Props {
 }
 
 export default function ResearchCard({ item }: Props) {
+
+
   const handleOpenPaper = async () => {
     if (!item.paperLink) return;
 
@@ -41,6 +43,15 @@ export default function ResearchCard({ item }: Props) {
       <View style={styles.row}>
         <User size={16} color={colors.primary} />
         <Text style={styles.text}>{item.fullName}</Text>
+      </View>
+      {/* Authors */}
+      <View style={styles.row}>
+        <User size={16} color={colors.primary} />
+        <Text style={styles.text}>
+          {item.authors?.length > 0
+            ? item.authors.join(", ")
+            : item.fullName}
+        </Text>
       </View>
 
       {/* Department */}

@@ -21,7 +21,7 @@ export default function CreateDriver() {
   const handleSave = async () => {
     const { name, mobile, licenseNumber, loginName, password } = form;
 
-    // 🔍 বেসিক ফ্রন্টএন্ড ভ্যালিডেশন
+
     if (!name || !mobile || !licenseNumber || !loginName || !password) {
       Alert.alert("Validation Error", "All fields are required!");
       return;
@@ -34,20 +34,20 @@ export default function CreateDriver() {
 
     try {
       setSubmitting(true);
-      
-      // 🚀 এপিআই রিকোয়েস্ট পাঠানো
+
+
       const response = await driverService.create({
         name: name.trim(),
         mobile: mobile.trim(),
         licenseNumber: licenseNumber.trim(),
-        loginName: loginName.trim().toLowerCase(), // ইউজারনেম সবসময় লোয়ারকেস রাখা ভালো
+        loginName: loginName.trim().toLowerCase(),
         password: password,
         role: 'driver'
       });
 
       if (response.success) {
         Alert.alert("Success", "Driver profile created successfully!");
-        router.back(); // সফল হলে আগের লিস্ট স্ক্রিনে ব্যাক করবে
+        router.back();
       } else {
         Alert.alert("Failed", response.message || "Could not create driver");
       }
@@ -61,7 +61,7 @@ export default function CreateDriver() {
 
   return (
     <ScrollView style={styles.container} keyboardShouldPersistTaps="handled">
-      {/* ⬅️ হেডার ব্যাক বাটন */}
+
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <ArrowLeft size={20} color="#1e293b" />
@@ -70,7 +70,7 @@ export default function CreateDriver() {
       </View>
 
       <View style={styles.formContainer}>
-        {/* ১. ড্রাইভারের নাম */}
+
         <Text style={styles.label}>Driver Name</Text>
         <View style={styles.inputContainer}>
           <User size={18} color="#64748b" style={styles.icon} />
@@ -83,7 +83,7 @@ export default function CreateDriver() {
           />
         </View>
 
-        {/* ২. মোবাইল নাম্বার */}
+
         <Text style={styles.label}>Mobile Number</Text>
         <View style={styles.inputContainer}>
           <Phone size={18} color="#64748b" style={styles.icon} />
@@ -97,7 +97,7 @@ export default function CreateDriver() {
           />
         </View>
 
-        {/* ৩. লাইসেন্স নাম্বার */}
+
         <Text style={styles.label}>License Number</Text>
         <View style={styles.inputContainer}>
           <CreditCard size={18} color="#64748b" style={styles.icon} />
@@ -110,7 +110,6 @@ export default function CreateDriver() {
           />
         </View>
 
-        {/* ৪. লগইন ইউজারনেম */}
         <Text style={styles.label}>Login Username</Text>
         <View style={styles.inputContainer}>
           <LogIn size={18} color="#64748b" style={styles.icon} />
@@ -124,7 +123,7 @@ export default function CreateDriver() {
           />
         </View>
 
-        {/* ৫. পাসওয়ার্ড */}
+
         <Text style={styles.label}>Password</Text>
         <View style={styles.inputContainer}>
           <Lock size={18} color="#64748b" style={styles.icon} />
@@ -138,9 +137,9 @@ export default function CreateDriver() {
           />
         </View>
 
-        {/* 💾 সাবমিট বাটন */}
-        <TouchableOpacity 
-          style={[styles.submitButton, submitting && styles.disabledButton]} 
+
+        <TouchableOpacity
+          style={[styles.submitButton, submitting && styles.disabledButton]}
           onPress={handleSave}
           disabled={submitting}
           activeOpacity={0.8}
@@ -161,12 +160,12 @@ export default function CreateDriver() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f8fafc' },
-  header: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    paddingHorizontal: 16, 
-    paddingTop: 20, 
-    paddingBottom: 12, 
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingTop: 20,
+    paddingBottom: 12,
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#e2e8f0'
@@ -175,24 +174,24 @@ const styles = StyleSheet.create({
   headerTitle: { fontSize: 18, fontWeight: '700', color: '#1e293b' },
   formContainer: { padding: 20, gap: 14 },
   label: { fontSize: 14, fontWeight: '600', color: '#475569', marginBottom: -4 },
-  inputContainer: { 
-    flexDirection: 'row', 
-    alignItems: 'center', 
-    backgroundColor: '#fff', 
-    borderWidth: 1, 
-    borderColor: '#cbd5e1', 
-    borderRadius: 10, 
-    paddingHorizontal: 12 
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: '#cbd5e1',
+    borderRadius: 10,
+    paddingHorizontal: 12
   },
   icon: { marginRight: 8 },
   input: { flex: 1, height: 48, color: '#1e293b', fontSize: 15 },
-  submitButton: { 
-    flexDirection: 'row', 
-    backgroundColor: '#2563eb', 
-    height: 50, 
-    borderRadius: 10, 
-    alignItems: 'center', 
-    justifyContent: 'center', 
+  submitButton: {
+    flexDirection: 'row',
+    backgroundColor: '#2563eb',
+    height: 50,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
     gap: 8,
     marginTop: 14,
     elevation: 2,

@@ -4,38 +4,32 @@ import { Bell, Bus, GraduationCap, Home, LocateFixed, Megaphone, Menu } from 'lu
 import React, { useEffect, useState } from 'react';
 import { AppState, Platform, Text, TouchableOpacity, View } from 'react-native';
 import { colors } from '../../constants/colors';
-import { noticeService } from '../../src/services/noticeService'; // 🆕 adjust path if your alias differs
+import { noticeService } from '../../src/services/noticeService';
 
 export default function TabsLayout() {
   const router = useRouter();
   const navigation = useNavigation();
   const params = useGlobalSearchParams();
 
-  // 🆕 was hardcoded to 3 before — now starts at 0 and gets filled from real data
   const [unreadCount, setUnreadCount] = useState(0);
 
-  // 🆕 Pulls the real count from noticeService (AsyncStorage "last seen" timestamp
-  // vs. notice createdAt dates — see noticeService.getUnreadCount()).
 const refreshUnreadCount = async () => {
   try {
     const count = await noticeService.getUnreadCount();
     setUnreadCount(count);
   } catch (error: any) {
-    // 🔕 background/badge feature — Alert দেখানোর দরকার নেই, silent fail
+
     if (__DEV__) {
       console.log('[TabsLayout] unread count fetch failed:', error?.message || error);
     }
-    // ইচ্ছাকৃতভাবে unreadCount কে 0 করছি না —
-    // সাময়িক network glitch এ আগের known badge count থেকে যাওয়াই ভালো UX
   }
 };
-  // 🆕 Fetch once when the tab layout first mounts (app open / login)
+
   useEffect(() => {
     refreshUnreadCount();
   }, []);
 
-  // 🆕 Refetch whenever navigation state changes — covers coming back from
-  // the notifications screen, switching tabs, etc. Cheap call, safe to repeat.
+
   useEffect(() => {
     const unsubscribe = navigation.addListener('state', () => {
       refreshUnreadCount();
@@ -43,8 +37,6 @@ const refreshUnreadCount = async () => {
     return unsubscribe;
   }, [navigation]);
 
-  // 🆕 Refetch when the app comes back to the foreground — catches the case
-  // where an admin posted a new notice while this user's app was backgrounded.
   useEffect(() => {
     const sub = AppState.addEventListener('change', (state) => {
       if (state === 'active') {

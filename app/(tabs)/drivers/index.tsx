@@ -1,6 +1,6 @@
-import { busService } from '@/src/services/busService'; // 🆕 adjust path to match your actual location
+import { busService } from '@/src/services/busService';
 import { Driver, driverService } from '@/src/services/driverService';
-import { Bus as BusType } from '@/src/types/bus'; // 🆕 reuse the same Bus type your other screens use
+import { Bus as BusType } from '@/src/types/bus';
 import { router, useNavigation } from 'expo-router';
 import { Bus, Calendar, CheckCircle, PencilLine, Plus, Trash2, X } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
@@ -10,7 +10,7 @@ export default function DriversList() {
   const [list, setList] = useState<Driver[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
-  // 🔄 বাস অ্যাসাইনমেন্টের জন্য স্টেটসমূহ
+
   const [buses, setBuses] = useState<BusType[]>([]);
   const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
   const [modalVisible, setModalVisible] = useState<boolean>(false);
@@ -18,7 +18,7 @@ export default function DriversList() {
 
   const navigation = useNavigation();
 
-  // ১. ড্রাইভার লিস্ট নিয়ে আসা
+ 
   const fetchDrivers = (showLoadingIndicator = true) => {
     if (showLoadingIndicator) setLoading(true);
     driverService.getAll()
@@ -114,16 +114,15 @@ export default function DriversList() {
     ]);
   };
 
-  // ✅ ড্রাইভার কার্ডে বাসের নাম দেখানোর জন্য সুরক্ষিত রেন্ডার ফাংশন
+
   const renderBusInfo = (busIdField: any) => {
     if (!busIdField) return 'No Bus Assigned';
 
-    // ১. যদি সম্পূর্ণ অবজেক্ট পপুলেট হয়ে আসে
     if (typeof busIdField === 'object' && busIdField.busName) {
       return `${busIdField.busName} (${busIdField.busNo || 'N/A'})`;
     }
 
-    // ২. যদি শুধুমাত্র আইডি স্ট্রিং পড়ে থাকে
+
     const lookupId = typeof busIdField === 'object' ? busIdField._id : busIdField;
     if (lookupId) {
       const matchedBus = buses.find(b => b._id === lookupId);
@@ -195,7 +194,7 @@ export default function DriversList() {
         )}
       />
 
-      {/* 🚌 বাস সিলেকশন মডাল */}
+
       <Modal
         animationType="slide"
         transparent={true}
@@ -225,7 +224,7 @@ export default function DriversList() {
                   <Text style={styles.emptyText}>No Buses Available In Database</Text>
                 ) : (
                   buses.map((bus) => {
-                    // 🎯 সুরক্ষিত একটিভ বাস চেকার কন্ডিশন (টাইপ কাস্টিং ও অবজেক্ট সেফগার্ড সহ)
+                
                     const isCurrentBus =
                       (selectedDriver?.busId === bus._id) ||
                       (typeof selectedDriver?.busId === 'object' && (selectedDriver?.busId as any)?._id === bus._id);

@@ -14,7 +14,6 @@ const DAY_MAPPER: { [key: string]: string } = {
 
 const TIME_REGEX = /^(0?[1-9]|1[0-2]):[0-5]\d\s?(AM|PM)$/i;
 
-// স্টপেজের টাইপ ইন্টারফেস
 interface DynamicStop {
   stopName: string;
   time: string;
@@ -28,19 +27,17 @@ export default function CreateTripScreen() {
   // Form States
   const [tripTitle, setTripTitle] = useState('');
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
-  
-  // 🎯 একাধিক স্টপের জন্য ডায়নামিক অ্যারে স্টেট (ডিফল্ট ২টা স্টপ দিয়ে শুরু হবে)
+
   const [stops, setStops] = useState<DynamicStop[]>([
     { stopName: '', time: '' }, // Sequence 1 (Departure)
     { stopName: '', time: '' }, // Sequence 2 (Destination)
   ]);
 
-  // নতুন স্টপ ফিল্ড যোগ করার ফাংশন
+
   const addStopField = () => {
     setStops([...stops, { stopName: '', time: '' }]);
   };
 
-  // কোনো নির্দিষ্ট স্টপ রিমুভ করার ফাংশন
   const removeStopField = (index: number) => {
     if (stops.length <= 2) {
       Alert.alert("Warning", "At least 2 stops (Start & End) are required!");
@@ -49,7 +46,6 @@ export default function CreateTripScreen() {
     setStops(stops.filter((_, i) => i !== index));
   };
 
-  // ইনপুট চেঞ্জ হ্যান্ডেল করার ফাংশন
   const handleInputChange = (index: number, field: keyof DynamicStop, value: string) => {
     const updatedStops = [...stops];
     updatedStops[index][field] = value;
@@ -65,13 +61,12 @@ export default function CreateTripScreen() {
   };
 
   const handleCreateTrip = async () => {
-    // ১. বেসিক ভ্যালিডেশন
+
     if (!tripTitle.trim() || selectedDays.length === 0) {
       Alert.alert("Validation Error", "Please fill up Trip Title and select at least one day.");
       return;
     }
 
-    // ২. ডায়নামিক স্টপগুলোর ডাটা ফরম্যাট এবং ভ্যালিডেশন
     const formattedStops = [];
     
     for (let i = 0; i < stops.length; i++) {
@@ -84,17 +79,16 @@ export default function CreateTripScreen() {
 
       const cleanTime = stop.time.trim() ? stop.time.trim().replace(/\s+/g, ' ').toUpperCase() : null;
 
-      // টাইম ফরম্যাট চেক
       if (cleanTime && !TIME_REGEX.test(cleanTime)) {
         Alert.alert("Format Error", `Time at "${stop.stopName}" (${cleanTime}) must be in valid 12-hour format (e.g., 07:30 AM)`);
         return;
       }
 
-      // 🎯 ব্যাকএন্ডের রিকোয়ার্ড ফরম্যাট অনুযায়ী অবজেক্ট তৈরি (এখানেই sequence সেট হচ্ছে)
+  
       formattedStops.push({
         stopName: stop.stopName.trim(),
         time: cleanTime,
-        sequence: i + 1 // ১ থেকে শুরু হয়ে ক্রমান্বয়ে বাড়বে (১, ২, ৩...)
+        sequence: i + 1 
       });
     }
 
@@ -103,7 +97,7 @@ export default function CreateTripScreen() {
     const tripData = {
       tripTitle: tripTitle.trim(),
       days: formattedDays,
-      stops: formattedStops // ব্যাকএন্ডে সর্ট করা অ্যারে চলে যাবে
+      stops: formattedStops 
     };
 
     try {
@@ -145,7 +139,7 @@ export default function CreateTripScreen() {
             <Text style={styles.stopBadge}>
               {index === 0 ? "Departure (Start)" : index === stops.length - 1 ? "Destination (End)" : `Stop #${index + 1}`}
             </Text>
-            {index > 1 && ( // প্রথম ২টা স্টপ (Start & End) ডিলিট করা যাবে না
+            {index > 1 && ( 
               <TouchableOpacity onPress={() => removeStopField(index)}>
                 <Trash2 size={18} color="#ef4444" />
               </TouchableOpacity>
@@ -178,7 +172,6 @@ export default function CreateTripScreen() {
         </View>
       ))}
 
-      {/* ➕ নতুন স্টপ যোগ করার বাটন */}
       <TouchableOpacity style={styles.addStopBtn} onPress={addStopField}>
         <Plus size={18} color={colors.primary} />
         <Text style={styles.addStopBtnText}>Add Intermediate Stop</Text>

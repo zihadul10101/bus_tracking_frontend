@@ -16,7 +16,7 @@ export default function EditBusScreen() {
   const [busName, setBusName] = useState('');
   const [busNo, setBusNo] = useState('');
 
-  // 🔄 এক্সিস্টিং বাসের ডাটা লোড করার ইফেক্ট
+
   useEffect(() => {
     const loadBusDetails = async () => {
       try {
@@ -52,7 +52,7 @@ export default function EditBusScreen() {
 
     try {
       setLoading(true);
-      // busService এ বাসের ডাটা আপডেট করার API কল মেথড
+    
       const res = await busService.updateBus(id as string, updatedBusData);
       if (res.success) {
         Alert.alert("Updated", "Bus details updated successfully!");
@@ -109,7 +109,7 @@ export default function EditBusScreen() {
   );
 }
 
-// 🎨 মডার্ন এবং ক্লিন ইউজার ইন্টারফেসের জন্য স্টাইলশিট
+
 const styles = StyleSheet.create({
   container: { 
     flex: 1, 
