@@ -4,7 +4,7 @@ import { colors } from '../constants/colors';
 
 interface RefreshContainerProps extends ScrollViewProps {
   children: React.ReactNode;
-  onRefreshAction: () => Promise<any>; // রিফ্রেশ করলে কোন ফাংশন চলবে
+  onRefreshAction: () => Promise<any>; 
 }
 
 export default function RefreshContainer({ 

@@ -1,6 +1,6 @@
 import { DrawerActions } from '@react-navigation/native';
 import { Tabs, useGlobalSearchParams, useNavigation, useRouter } from 'expo-router';
-import { Bell, Bus, GraduationCap, Home, LocateFixed, Megaphone, Menu } from 'lucide-react-native'; // ✅ Megaphone যোগ করা হলো
+import { Bell, Bus, Home, LocateFixed, Menu } from 'lucide-react-native'; // ✅ Megaphone যোগ করা হলো
 import React, { useEffect, useState } from 'react';
 import { AppState, Platform, Text, TouchableOpacity, View } from 'react-native';
 import { colors } from '../../constants/colors';
@@ -13,17 +13,17 @@ export default function TabsLayout() {
 
   const [unreadCount, setUnreadCount] = useState(0);
 
-const refreshUnreadCount = async () => {
-  try {
-    const count = await noticeService.getUnreadCount();
-    setUnreadCount(count);
-  } catch (error: any) {
+  const refreshUnreadCount = async () => {
+    try {
+      const count = await noticeService.getUnreadCount();
+      setUnreadCount(count);
+    } catch (error: any) {
 
-    if (__DEV__) {
-      console.log('[TabsLayout] unread count fetch failed:', error?.message || error);
+      if (__DEV__) {
+        console.log('[TabsLayout] unread count fetch failed:', error?.message || error);
+      }
     }
-  }
-};
+  };
 
   useEffect(() => {
     refreshUnreadCount();
@@ -51,7 +51,7 @@ const refreshUnreadCount = async () => {
     // Core tabs
     if (routeName === 'home') return 'Home';
     if (routeName === 'transport') return 'Transport';
-    if (routeName === 'research/index') return 'Research';
+    // if (routeName === 'research/index') return 'Research';
 
     // Notifications
     if (routeName === 'notifications/index') return 'Notifications';
@@ -88,39 +88,8 @@ const refreshUnreadCount = async () => {
     if (routeName === 'live-trips/index') return 'Live Trip';
     if (routeName.startsWith('live-trips/')) return 'Bus Location';
 
-    // Research
-    if (routeName === 'research/submit') return 'Submit Research';
-    if (routeName === 'research/my-submissions') return 'My Research';
-    if (routeName === 'research/admin') return 'Research Review';
 
-    // Admin
-    if (routeName === 'entrepreneur/admin/dashboard') return 'Ent. Dashboard';
-    if (routeName === 'entrepreneur/admin/businesses/index') return 'Manage Businesses';
-    if (routeName === 'entrepreneur/admin/businesses/[id]') return 'Business Detail';
-    if (routeName === 'entrepreneur/admin/ads/index') return 'Manage Ads';
-    if (routeName === 'entrepreneur/admin/ads/[id]') return 'Ad Detail';
-    if (routeName === 'entrepreneur/admin/payments/index') return 'Manage Payments';
-    if (routeName === 'entrepreneur/admin/coupons/index') return 'Coupons';
-    if (routeName === 'entrepreneur/admin/coupons/create') return 'Create Coupon';
-    if (routeName === 'entrepreneur/admin/coupons/edit/[id]') return 'Edit Coupon';
-    if (routeName === 'entrepreneur/admin/packages/index') return 'Packages';
-    if (routeName === 'entrepreneur/admin/packages/create') return 'Create Package';
-    if (routeName === 'entrepreneur/admin/packages/edit/[id]') return 'Edit Package';
 
-    // Student
-    if (routeName === 'entrepreneur/student/dashboard') return 'My Dashboard';
-    if (routeName === 'entrepreneur/student/businesses/index') return 'All Businesses';
-    if (routeName === 'entrepreneur/student/businesses/[id]') return 'Business Details';
-    if (routeName === 'entrepreneur/student/businesses/create') return 'Create Business';
-    if (routeName === 'entrepreneur/student/businesses/my-businesses') return 'My Businesses';
-    if (routeName === 'entrepreneur/student/businesses/edit/[id]') return 'Edit Business';
-    if (routeName === 'entrepreneur/student/ads/index') return 'Entrepreneur'; // ✅ bottom tab এর জন্য নতুন নাম
-    if (routeName === 'entrepreneur/student/ads/[id]') return 'Ad Details';
-    if (routeName === 'entrepreneur/student/ads/submit') return 'Submit Ad';
-    if (routeName === 'entrepreneur/student/ads/my-ads') return 'My Ads';
-    if (routeName === 'entrepreneur/student/ads/renew/[id]') return 'Renew Ad';
-    if (routeName === 'entrepreneur/student/payments/index') return 'My Payments';
-    if (routeName === 'entrepreneur/student/packages/index') return 'Packages';
 
     return routeName.charAt(0).toUpperCase() + routeName.slice(1);
   };
@@ -133,9 +102,8 @@ const refreshUnreadCount = async () => {
     routeName.startsWith('notices') ||
     routeName.startsWith('bus-management') ||
     routeName.startsWith('work-driver') ||
-    routeName.startsWith('LiveTrackingView') ||
-    // ✅ 'entrepreneur/student/ads/index' বাদে বাকি সব entrepreneur route hidden থাকবে
-    (routeName.startsWith('entrepreneur') && routeName !== 'entrepreneur/student/ads/index');
+    routeName.startsWith('LiveTrackingView')
+
 
   return (
     <Tabs
@@ -145,8 +113,7 @@ const refreshUnreadCount = async () => {
           switch (route.name) {
             case 'home': Icon = Home; break;
             case 'transport': Icon = Bus; break;
-            case "research/index": Icon = GraduationCap; break;
-            case 'entrepreneur/student/ads/index': Icon = Megaphone; break; // ✅ Ads Feed আইকন
+          
             default: return null;
           }
           return <Icon size={size} color={color} />;
@@ -246,24 +213,10 @@ const refreshUnreadCount = async () => {
           VISIBLE TABS (bottom tab bar)
       ════════════════════════════════════════════════════════════════════ */}
       <Tabs.Screen name="home" options={{ title: 'Home' }} />
+       <Tabs.Screen name="live-trips/index" options={{ title: 'Live Trip', tabBarIcon: ({ color, size }) => <LocateFixed size={size} color={color} /> }} />
       <Tabs.Screen name="transport" options={{ title: 'Transport' }} />
-      <Tabs.Screen name="live-trips/index" options={{ title: 'Live Trip', tabBarIcon: ({ color, size }) => <LocateFixed size={size} color={color} /> }} />
-      <Tabs.Screen
-        name="research/index"
-        options={{
-          title: 'Research',
-          tabBarIcon: ({ color, size }) => <GraduationCap size={size} color={color} />,
-        }}
-      />
-
-      {/* ✅ নতুন visible tab — Ads Feed */}
-      <Tabs.Screen
-        name="entrepreneur/student/ads/index"
-        options={{
-          title: 'Entrepreneur',
-          tabBarIcon: ({ color, size }) => <Megaphone size={size} color={color} />,
-        }}
-      />
+     
+  
 
       {/* ════════════════════════════════════════════════════════════════════
           HIDDEN — Live Trips detail
@@ -314,40 +267,7 @@ const refreshUnreadCount = async () => {
       <Tabs.Screen name="work-driver/assign-bus" options={{ href: null }} />
       <Tabs.Screen name="work-driver/LiveTrackingView" options={{ href: null }} />
 
-      {/* ════════════════════════════════════════════════════════════════════
-          HIDDEN — Research
-      ════════════════════════════════════════════════════════════════════ */}
-      <Tabs.Screen name="research/submit" options={{ href: null }} />
-      <Tabs.Screen name="research/my-submissions" options={{ href: null }} />
-      <Tabs.Screen name="research/admin" options={{ href: null }} />
-
-      {/* ── ADMIN ───────────────────────────────────────────────────────── */}
-      <Tabs.Screen name="entrepreneur/admin/dashboard" options={{ href: null }} />
-      <Tabs.Screen name="entrepreneur/admin/businesses/index" options={{ href: null }} />
-      <Tabs.Screen name="entrepreneur/admin/businesses/[id]" options={{ href: null }} />
-      <Tabs.Screen name="entrepreneur/admin/ads/index" options={{ href: null }} />
-      <Tabs.Screen name="entrepreneur/admin/ads/[id]" options={{ href: null }} />
-      <Tabs.Screen name="entrepreneur/admin/payments/index" options={{ href: null }} />
-      <Tabs.Screen name="entrepreneur/admin/coupons/index" options={{ href: null }} />
-      <Tabs.Screen name="entrepreneur/admin/coupons/create" options={{ href: null }} />
-      <Tabs.Screen name="entrepreneur/admin/coupons/edit/[id]" options={{ href: null }} />
-      <Tabs.Screen name="entrepreneur/admin/packages/index" options={{ href: null }} />
-      <Tabs.Screen name="entrepreneur/admin/packages/create" options={{ href: null }} />
-      <Tabs.Screen name="entrepreneur/admin/packages/edit/[id]" options={{ href: null }} />
-
-      {/* ── STUDENT (bakida hidden, শুধু ads/index উপরে visible হিসেবে যোগ হয়েছে) ── */}
-      <Tabs.Screen name="entrepreneur/student/dashboard" options={{ href: null }} />
-      <Tabs.Screen name="entrepreneur/student/businesses/index" options={{ href: null }} />
-      <Tabs.Screen name="entrepreneur/student/businesses/[id]" options={{ href: null }} />
-      <Tabs.Screen name="entrepreneur/student/businesses/create" options={{ href: null }} />
-      <Tabs.Screen name="entrepreneur/student/businesses/my-businesses" options={{ href: null }} />
-      <Tabs.Screen name="entrepreneur/student/businesses/edit/[id]" options={{ href: null }} />
-      <Tabs.Screen name="entrepreneur/student/ads/[id]" options={{ href: null }} />
-      <Tabs.Screen name="entrepreneur/student/ads/submit" options={{ href: null }} />
-      <Tabs.Screen name="entrepreneur/student/ads/my-ads" options={{ href: null }} />
-      <Tabs.Screen name="entrepreneur/student/ads/renew/[id]" options={{ href: null }} />
-      <Tabs.Screen name="entrepreneur/student/payments/index" options={{ href: null }} />
-      <Tabs.Screen name="entrepreneur/student/packages/index" options={{ href: null }} />
+     
     </Tabs>
   );
 }

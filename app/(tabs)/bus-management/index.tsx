@@ -29,21 +29,20 @@ export default function BusListScreen() {
     }
   };
 
-  // 🗑️ বাস ডিলিট করার ফাংশন
+
   const deleteBusDirectly = async (busId: string) => {
     try {
       await busService.deleteBus(busId);
       Alert.alert('Success', 'Bus deleted successfully');
-      fetchBuses(false); // ডিলিটের পর ব্যাকগ্রাউন্ডে লিস্ট আপডেট
+      fetchBuses(false);
     } catch (err: any) {
       Alert.alert('Error', err.userMessage || err.message || 'Failed to delete bus');
     }
   };
 
-  // 🎯 স্ক্রিনে ফোকাস আসলে অটোমেটিক ডাটা রিফ্রেশ
 useFocusEffect(
   useCallback(() => {
-    fetchBuses(false); // always background refresh — spinner শুধু প্রথমবার (initial state loading=true থেকে) দেখাবে
+    fetchBuses(false); 
   }, [])
 );
 
@@ -59,8 +58,7 @@ useFocusEffect(
   }
 
   return (
-    // 🎯 ১. পুরো স্ক্রিনটিকে আপনার Reusable RefreshContainer দিয়ে মুড়িয়ে দিন
-    // এবং onRefreshAction-এ ডাটা ফেচিং মেথডটি পাস করুন
+
     <RefreshContainer onRefreshAction={() => fetchBuses(false)}>
       <View style={styles.container}>
         
@@ -76,12 +74,11 @@ useFocusEffect(
           </TouchableOpacity>
         </View>
 
-        {/* 🎯 ২. এখানে FlatList-এর নিজস্ব scrollEnabled বন্ধ করে দেওয়া হয়েছে 
-            যাতে RefreshContainer (ScrollView)-এর সাথে স্ক্রোলিং কনফ্লিক্ট না হয় */}
+
         <FlatList
           data={buses}
           keyExtractor={(item) => item._id}
-          scrollEnabled={false} // 👈 ক্রুশিয়াল পার্ট: স্ক্রোলিং কনফ্লিক্ট এড়ানোর জন্য
+          scrollEnabled={false} 
           contentContainerStyle={{ paddingBottom: 80 }} 
           ListEmptyComponent={
             <View style={styles.emptyContainer}>

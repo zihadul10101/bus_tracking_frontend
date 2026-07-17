@@ -3,13 +3,13 @@ import { Driver, driverService } from '@/src/services/driverService';
 import { Bus as BusType } from '@/src/types/bus';
 import { router, useNavigation } from 'expo-router';
 import { Bus, Calendar, CheckCircle, PencilLine, Plus, Trash2, X } from 'lucide-react-native';
-import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, FlatList, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, FlatList, Modal, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function DriversList() {
   const [list, setList] = useState<Driver[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-
+  const [refreshing, setRefreshing] = useState<boolean>(false);
 
   const [buses, setBuses] = useState<BusType[]>([]);
   const [selectedDriver, setSelectedDriver] = useState<Driver | null>(null);
@@ -18,10 +18,9 @@ export default function DriversList() {
 
   const navigation = useNavigation();
 
- 
   const fetchDrivers = (showLoadingIndicator = true) => {
     if (showLoadingIndicator) setLoading(true);
-    driverService.getAll()
+    return driverService.getAll()
       .then((res: any) => {
         let driversData = res.success && Array.isArray(res.data) ? res.data : (Array.isArray(res) ? res : []);
         const activeDrivers = driversData.filter((d: any) => d && !d.isDeleted);
@@ -60,6 +59,18 @@ export default function DriversList() {
   useEffect(() => {
     fetchDrivers(true);
     fetchAllBuses();
+  }, []);
+
+  // 🔽 Pull-to-refresh handler
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([fetchDrivers(false), fetchAllBuses()]);
+    } catch (err) {
+      console.warn("Drivers List Refresh Error:", err);
+    } finally {
+      setRefreshing(false);
+    }
   }, []);
 
   const handleAssignBus = async (busId: string, busName: string) => {
@@ -114,14 +125,12 @@ export default function DriversList() {
     ]);
   };
 
-
   const renderBusInfo = (busIdField: any) => {
     if (!busIdField) return 'No Bus Assigned';
 
     if (typeof busIdField === 'object' && busIdField.busName) {
       return `${busIdField.busName} (${busIdField.busNo || 'N/A'})`;
     }
-
 
     const lookupId = typeof busIdField === 'object' ? busIdField._id : busIdField;
     if (lookupId) {
@@ -152,6 +161,14 @@ export default function DriversList() {
         keyExtractor={(item) => item._id}
         contentContainerStyle={{ paddingBottom: 40 }}
         ListEmptyComponent={<Text style={styles.emptyText}>No Drivers Found</Text>}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor="#2563eb"
+            colors={['#2563eb']}
+          />
+        }
         renderItem={({ item }) => (
           <View style={styles.card}>
             <TouchableOpacity
@@ -194,7 +211,6 @@ export default function DriversList() {
         )}
       />
 
-
       <Modal
         animationType="slide"
         transparent={true}
@@ -224,7 +240,6 @@ export default function DriversList() {
                   <Text style={styles.emptyText}>No Buses Available In Database</Text>
                 ) : (
                   buses.map((bus) => {
-                
                     const isCurrentBus =
                       (selectedDriver?.busId === bus._id) ||
                       (typeof selectedDriver?.busId === 'object' && (selectedDriver?.busId as any)?._id === bus._id);
@@ -233,7 +248,7 @@ export default function DriversList() {
                       <TouchableOpacity
                         key={bus._id}
                         style={[styles.busItem, isCurrentBus && styles.activeBusItem]}
-                        onPress={() => handleAssignBus(bus._id, bus.busName)} // ✅ এখানে অবশই মেইন বাসের ইউনিক _id টাই পাস হচ্ছে
+                        onPress={() => handleAssignBus(bus._id, bus.busName)}
                         activeOpacity={0.7}
                       >
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>

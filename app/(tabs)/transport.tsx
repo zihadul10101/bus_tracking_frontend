@@ -47,14 +47,16 @@ export default function TransportPage() {
     refreshing,
     error,
     refresh,
+    isFromCache, // 👈 NEW
+    isStale,     // 👈 NEW
   } = useCachedResource<Bus[]>(
-    '@transport_buses', // cache key
+    '@transport_buses',
     async () => {
       const result = await busService.getAllBuses();
       if (!result.success) throw new Error(result.message || 'Failed to load bus information.');
       return result.data;
     },
-    [] 
+    []
   );
 
   const [selectedBus, setSelectedBus] = useState<Bus | null>(null);
@@ -95,7 +97,7 @@ export default function TransportPage() {
     return `বিকাল/সন্ধ্যা (Trip ${index + 1})`;
   };
 
-  
+
   if (loading) {
     return (
       <View style={styles.loader}>
@@ -104,8 +106,11 @@ export default function TransportPage() {
     );
   }
 
+  // ✅ FIX: cached buses থাকলে error-কে hard-block করা হবে না (আগের HomePage fix-এর একই যুক্তি)
+  const hasAnyCachedData = buses && buses.length > 0;
+  const showHardError = !!error && !hasAnyCachedData;
 
-  if (error && buses.length === 0) {
+  if (showHardError) {
     return (
       <View style={styles.loader}>
         <Text style={{ color: '#ef4444', marginBottom: 12, textAlign: 'center', paddingHorizontal: 20 }}>
@@ -120,6 +125,26 @@ export default function TransportPage() {
 
   return (
     <View style={styles.container}>
+
+      {/* 👈 NEW: cache badge + offline banner */}
+      <View style={styles.cacheStatusRow}>
+        {isFromCache && (
+          <View style={[styles.cacheBadge, isStale ? styles.cacheBadgeStale : styles.cacheBadgeFresh]}>
+            {isStale && <ActivityIndicator size="small" color="#92400e" style={{ marginRight: 4 }} />}
+            <Text style={[styles.cacheBadgeText, isStale ? styles.cacheBadgeTextStale : styles.cacheBadgeTextFresh]}>
+              {isStale ? 'Updating…' : 'Cached'}
+            </Text>
+          </View>
+        )}
+      </View>
+
+      {error && hasAnyCachedData && (
+        <View style={styles.offlineBanner}>
+          <Text style={styles.offlineBannerText}>
+            ⚠️ ইন্টারনেট নেই — সর্বশেষ সেভ করা তথ্য দেখানো হচ্ছে
+          </Text>
+        </View>
+      )}
 
       <View style={styles.tabWrapper}>
         <Text style={styles.sectionLabel}>Select a bus:</Text>
@@ -295,4 +320,30 @@ const styles = StyleSheet.create({
   daysTitle: { fontSize: 13, fontWeight: '700', color: '#64748b' },
   daysList: { fontSize: 13, color: '#2563eb', fontWeight: '600' },
   noTripBox: { alignItems: 'center', justifyContent: 'center', padding: 30 },
+
+  // 👈 NEW: cache badge + offline banner styles (HomePage-এর সাথে consistent)
+  cacheStatusRow: { flexDirection: 'row', marginBottom: 4 },
+  cacheBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 20,
+    marginBottom: 10,
+  },
+  cacheBadgeFresh: { backgroundColor: '#f1f5f9', borderWidth: 1, borderColor: '#e2e8f0' },
+  cacheBadgeStale: { backgroundColor: '#fef3c7', borderWidth: 1, borderColor: '#fde68a' },
+  cacheBadgeText: { fontSize: 10, fontWeight: '700' },
+  cacheBadgeTextFresh: { color: '#64748b' },
+  cacheBadgeTextStale: { color: '#92400e' },
+  offlineBanner: {
+    backgroundColor: '#fef3c7',
+    borderWidth: 1,
+    borderColor: '#fde68a',
+    borderRadius: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    marginBottom: 12,
+  },
+  offlineBannerText: { fontSize: 11, color: '#92400e', textAlign: 'center', fontWeight: '600' },
 });

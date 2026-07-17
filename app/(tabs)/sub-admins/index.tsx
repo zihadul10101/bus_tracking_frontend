@@ -1,17 +1,18 @@
 import { SubAdmin, subAdminService } from '@/src/services/subAdminService';
 import { router, useNavigation } from 'expo-router';
-import { Clock, PencilLine, ShieldCheck, Trash2 } from 'lucide-react-native'; // 👈 নতুন আইকন
-import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Button, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Clock, PencilLine, ShieldCheck, Trash2 } from 'lucide-react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, Button, FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function SubAdminsList() {
   const [list, setList] = useState<SubAdmin[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
   const navigation = useNavigation();
 
   const fetchSubAdmins = (showLoadingIndicator = true) => {
     if (showLoadingIndicator) setLoading(true);
-    subAdminService.getAll()
+    return subAdminService.getAll()
       .then((res: any) => {
         const adminsData = res.data ? res.data : res;
         setList(Array.isArray(adminsData) ? adminsData : []);
@@ -34,14 +35,24 @@ export default function SubAdminsList() {
     fetchSubAdmins(true);
   }, []);
 
-  
+  // 🔽 Pull-to-refresh handler
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await fetchSubAdmins(false);
+    } catch (err) {
+      console.warn("SubAdmins List Refresh Error:", err);
+    } finally {
+      setRefreshing(false);
+    }
+  }, []);
+
   const formatDate = (dateString?: string) => {
     if (!dateString) return 'N/A';
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
   };
 
-  // 🗑️ ডিলিট অ্যাকশন
   const handleDelete = (id: string, name: string) => {
     Alert.alert(
       "Confirm Delete",
@@ -80,6 +91,14 @@ export default function SubAdminsList() {
       <FlatList
         data={list}
         keyExtractor={(item) => item._id}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor="#002147"
+            colors={['#002147']}
+          />
+        }
         ListEmptyComponent={
           <Text style={styles.emptyText}>No Sub Admins Found</Text>
         }
@@ -148,7 +167,7 @@ const styles = StyleSheet.create({
   card: { 
     flexDirection: 'row', 
     justifyContent: 'space-between', 
-    alignItems: 'flex-start', // ওপরে এলাইন করা হয়েছে যাতে নিচের টেক্সট সুন্দর বসে
+    alignItems: 'flex-start',
     paddingVertical: 16, 
     paddingHorizontal: 12,
     borderBottomWidth: 1, 
@@ -159,7 +178,6 @@ const styles = StyleSheet.create({
   nameText: { fontSize: 16, fontWeight: '700', color: '#1e293b' },
   emailText: { fontSize: 13, color: '#64748b', marginTop: 2 },
   
-  // 🏷️ পারমিশন ব্যাজ স্টাইল
   badgeContainer: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', marginTop: 8, gap: 6 },
   badge: { 
     fontSize: 11, 
@@ -171,7 +189,6 @@ const styles = StyleSheet.create({
     borderRadius: 6 
   },
   
-  // 🗓️ টাইমস্ট্যাম্প স্টাইল
   timeContainer: { flexDirection: 'row', alignItems: 'center', marginTop: 8, gap: 4 },
   timeText: { fontSize: 11, color: '#94a3b8' },
 

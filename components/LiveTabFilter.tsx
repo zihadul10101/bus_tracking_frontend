@@ -12,7 +12,7 @@ interface LiveTabFilterProps {
 export default function LiveTabFilter({ activeTab, onTabChange, counts }: LiveTabFilterProps) {
   const tabs: { id: TabType; label: string }[] = [
     { id: 'running', label: `🟢 Running (${counts.running})` },
-    { id: 'future', label: `⏱️ Future (${counts.future})` },
+    { id: 'future', label: `⏱️ Up Coming (${counts.future})` },
     { id: 'completed', label: `✅ Completed (${counts.completed})` },
   ];
 

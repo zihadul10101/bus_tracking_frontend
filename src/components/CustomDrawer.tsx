@@ -4,24 +4,17 @@ import { DrawerContentScrollView, DrawerItem } from '@react-navigation/drawer';
 import { router, usePathname } from 'expo-router';
 
 import {
-  Briefcase,
-  Building2,
   Bus,
   ChevronRight,
-  CreditCard,
-  FileText,
   LayoutDashboard,
   LogOut,
   Megaphone,
-  Package,
   ShieldCheck,
-  Tag,
   User,
   Users
 } from 'lucide-react-native';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Platform, StyleSheet, Text, View } from 'react-native';
-import researchService from '../services/research.service';
 
 const ROLE_LABELS: Record<string, string> = {
   super_admin: 'Super Admin',
@@ -31,35 +24,19 @@ const ROLE_LABELS: Record<string, string> = {
 };
 
 export default function CustomDrawerContent(props: any) {
-  // ✅ FIX: user এখন AppContext থেকে আসছে — নিজে থেকে আর
-  // AsyncStorage.getItem('userData') কল করার দরকার নেই। এতে logout করলে
-  // সাথে সাথেই (state change এ) drawer রি-রেন্ডার হয়ে user info সাফ হয়ে
-  // যাবে, কোনো manual `fetchUser`/navigation-listener লাগবে না।
+
   const { user, logout } = useApp();
-  const [researchUnread, setResearchUnread] = useState(0);
+
   const pathname = usePathname();
 
-  const fetchResearchUnreadCount = async (role: string) => {
-    if (role !== 'student') return;
-    try {
-      const data = await researchService.getUnreadCount();
-      if (data.success) setResearchUnread(data.count);
-    } catch (error) {
-      console.error('Error fetching research unread count:', error);
-    }
-  };
 
-  // ✅ user বদলালে (login/logout/refresh) unread count রিফ্রেশ হবে
-  useEffect(() => {
-    if (user?.role) fetchResearchUnreadCount(user.role);
-    else setResearchUnread(0);
-  }, [user?.role]);
+
 
   const handleLogout = async () => {
     try {
-      await logout();                  // ✅ AppContext state + storage দুটোই ক্লিয়ার হয়
+      await logout();                
       props.navigation.closeDrawer();
-      router.replace('/(auth)');        // login screen এ পাঠাও
+      router.replace('/(auth)');       
     } catch (error) {
       console.error("Logout failed:", error);
     }
@@ -85,7 +62,7 @@ export default function CustomDrawerContent(props: any) {
 
   const showManageSection =
     currentRole === 'super_admin' || currentRole === 'sub_admin';
-  const showEntrepreneurMgtSection = currentRole === 'super_admin';
+
 
   return (
     <View style={styles.root}>
@@ -156,53 +133,8 @@ export default function CustomDrawerContent(props: any) {
               />
             )}
 
-            {currentRole === 'student' && (
-              <DrawerItem
-                label="Submit Research"
-                focused={pathname.startsWith('/research/submit')}
-                activeBackgroundColor={activeBg}
-                activeTintColor={primaryColor}
-                inactiveTintColor="#475569"
-                labelStyle={styles.itemLabel}
-                style={styles.drawerItem}
-                icon={({ color, focused }: any) =>
-                  renderIcon(FileText, focused, color)
-                }
-                onPress={() => {
-                  props.navigation.closeDrawer();
-                  router.push('/(tabs)/research/submit' as any);
-                }}
-              />
-            )}
 
-            {currentRole === 'student' && (
-              <View style={styles.itemWithBadge}>
-                <DrawerItem
-                  label="My Research"
-                  focused={pathname.startsWith('/research/my-submissions')}
-                  activeBackgroundColor={activeBg}
-                  activeTintColor={primaryColor}
-                  inactiveTintColor="#475569"
-                  labelStyle={styles.itemLabel}
-                  style={[styles.drawerItem, { flex: 1 }]}
-                  icon={({ color, focused }: any) =>
-                    renderIcon(FileText, focused, color)
-                  }
-                  onPress={() => {
-                    props.navigation.closeDrawer();
-                    setResearchUnread(0);
-                    router.push('/(tabs)/research/my-submissions' as any);
-                  }}
-                />
-                {researchUnread > 0 && (
-                  <View style={styles.notifyBadge}>
-                    <Text style={styles.notifyBadgeText}>
-                      {researchUnread > 9 ? '9+' : researchUnread}
-                    </Text>
-                  </View>
-                )}
-              </View>
-            )}
+     
           </View>
 
           {/* 🛠️ ম্যানেজমেন্ট সেকশন */}
@@ -254,6 +186,8 @@ export default function CustomDrawerContent(props: any) {
                   />
                 )}
 
+               
+
                 <DrawerItem
                   label="Notices"
                   focused={pathname.startsWith('/notices')}
@@ -268,171 +202,11 @@ export default function CustomDrawerContent(props: any) {
                   onPress={() => router.push('/(tabs)/notices')}
                 />
 
-                <DrawerItem
-                  label="Research Review"
-                  focused={pathname.startsWith('/research/admin')}
-                  activeBackgroundColor={activeBg}
-                  activeTintColor={primaryColor}
-                  inactiveTintColor="#475569"
-                  labelStyle={styles.itemLabel}
-                  style={styles.drawerItem}
-                  icon={({ color, focused }: any) =>
-                    renderIcon(FileText, focused, color)
-                  }
-                  onPress={() => router.push('/(tabs)/research/admin' as any)}
-                />
               </View>
             </>
           )}
 
-          {currentRole === 'student' && (
-            <>
-              <Text style={styles.sectionLabel}>ENTREPRENEUR</Text>
-              <View style={styles.itemGroup}>
-                <DrawerItem
-                  label="My Businesses"
-                  focused={pathname.startsWith('/entrepreneur/student/businesses/my-businesses')}
-                  activeBackgroundColor={activeBg}
-                  activeTintColor={primaryColor}
-                  inactiveTintColor="#475569"
-                  labelStyle={styles.itemLabel}
-                  style={styles.drawerItem}
-                  icon={({ color, focused }: any) => renderIcon(Building2, focused, color)}
-                  onPress={() => {
-                    props.navigation.closeDrawer();
-                    router.push('/(tabs)/entrepreneur/student/businesses/my-businesses' as any);
-                  }}
-                />
 
-                <DrawerItem
-                  label="My Ads"
-                  focused={pathname.startsWith('/entrepreneur/student/ads/my-ads')}
-                  activeBackgroundColor={activeBg}
-                  activeTintColor={primaryColor}
-                  inactiveTintColor="#475569"
-                  labelStyle={styles.itemLabel}
-                  style={styles.drawerItem}
-                  icon={({ color, focused }: any) => renderIcon(Briefcase, focused, color)}
-                  onPress={() => {
-                    props.navigation.closeDrawer();
-                    router.push('/(tabs)/entrepreneur/student/ads/my-ads' as any);
-                  }}
-                />
-
-                <DrawerItem
-                  label="My Payments"
-                  focused={pathname.startsWith('/entrepreneur/student/payments')}
-                  activeBackgroundColor={activeBg}
-                  activeTintColor={primaryColor}
-                  inactiveTintColor="#475569"
-                  labelStyle={styles.itemLabel}
-                  style={styles.drawerItem}
-                  icon={({ color, focused }: any) => renderIcon(CreditCard, focused, color)}
-                  onPress={() => {
-                    props.navigation.closeDrawer();
-                    router.push('/(tabs)/entrepreneur/student/payments' as any);
-                  }}
-                />
-              </View>
-            </>
-          )}
-
-          {showEntrepreneurMgtSection && (
-            <>
-              <Text style={styles.sectionLabel}>ENTREPRENEUR MGT</Text>
-              <View style={styles.itemGroup}>
-                <DrawerItem
-                  label="Ent. Dashboard"
-                  focused={pathname === '/entrepreneur/admin/dashboard'}
-                  activeBackgroundColor={activeBg}
-                  activeTintColor={primaryColor}
-                  inactiveTintColor="#475569"
-                  labelStyle={styles.itemLabel}
-                  style={styles.drawerItem}
-                  icon={({ color, focused }: any) => renderIcon(LayoutDashboard, focused, color)}
-                  onPress={() => {
-                    props.navigation.closeDrawer();
-                    router.push('/(tabs)/entrepreneur/admin/dashboard' as any);
-                  }}
-                />
-
-                <DrawerItem
-                  label="Businesses"
-                  focused={pathname.startsWith('/entrepreneur/admin/businesses')}
-                  activeBackgroundColor={activeBg}
-                  activeTintColor={primaryColor}
-                  inactiveTintColor="#475569"
-                  labelStyle={styles.itemLabel}
-                  style={styles.drawerItem}
-                  icon={({ color, focused }: any) => renderIcon(Building2, focused, color)}
-                  onPress={() => {
-                    props.navigation.closeDrawer();
-                    router.push('/(tabs)/entrepreneur/admin/businesses' as any);
-                  }}
-                />
-
-                <DrawerItem
-                  label="Advertisements"
-                  focused={pathname.startsWith('/entrepreneur/admin/ads')}
-                  activeBackgroundColor={activeBg}
-                  activeTintColor={primaryColor}
-                  inactiveTintColor="#475569"
-                  labelStyle={styles.itemLabel}
-                  style={styles.drawerItem}
-                  icon={({ color, focused }: any) => renderIcon(Megaphone, focused, color)}
-                  onPress={() => {
-                    props.navigation.closeDrawer();
-                    router.push('/(tabs)/entrepreneur/admin/ads' as any);
-                  }}
-                />
-
-                <DrawerItem
-                  label="Payments"
-                  focused={pathname.startsWith('/entrepreneur/admin/payments')}
-                  activeBackgroundColor={activeBg}
-                  activeTintColor={primaryColor}
-                  inactiveTintColor="#475569"
-                  labelStyle={styles.itemLabel}
-                  style={styles.drawerItem}
-                  icon={({ color, focused }: any) => renderIcon(CreditCard, focused, color)}
-                  onPress={() => {
-                    props.navigation.closeDrawer();
-                    router.push('/(tabs)/entrepreneur/admin/payments' as any);
-                  }}
-                />
-
-                <DrawerItem
-                  label="Coupons"
-                  focused={pathname.startsWith('/entrepreneur/admin/coupons')}
-                  activeBackgroundColor={activeBg}
-                  activeTintColor={primaryColor}
-                  inactiveTintColor="#475569"
-                  labelStyle={styles.itemLabel}
-                  style={styles.drawerItem}
-                  icon={({ color, focused }: any) => renderIcon(Tag, focused, color)}
-                  onPress={() => {
-                    props.navigation.closeDrawer();
-                    router.push('/(tabs)/entrepreneur/admin/coupons' as any);
-                  }}
-                />
-
-                <DrawerItem
-                  label="Packages"
-                  focused={pathname.startsWith('/entrepreneur/admin/packages')}
-                  activeBackgroundColor={activeBg}
-                  activeTintColor={primaryColor}
-                  inactiveTintColor="#475569"
-                  labelStyle={styles.itemLabel}
-                  style={styles.drawerItem}
-                  icon={({ color, focused }: any) => renderIcon(Package, focused, color)}
-                  onPress={() => {
-                    props.navigation.closeDrawer();
-                    router.push('/(tabs)/entrepreneur/admin/packages' as any);
-                  }}
-                />
-              </View>
-            </>
-          )}
         </View>
       </DrawerContentScrollView>
 

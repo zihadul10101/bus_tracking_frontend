@@ -4,10 +4,11 @@ import { Alert, Button, StyleSheet, Switch, Text, TextInput, View } from 'react-
 
 // 🔐 আপনার ব্যাকএন্ড ডাটাবেজের অবজেক্ট স্ট্রাকচার অনুযায়ী ইন্টারফেস
 interface Permissions {
+  canManageDrivers: boolean;
   canManageBuses: boolean;
-  canManageStudents: boolean;
   canPostNotices: boolean;
-  canViewTracking: boolean;
+  canManageSubadmin: boolean;
+
 }
 
 interface FormProps {
@@ -27,12 +28,12 @@ export default function SubAdminForm({ initialValues, onSubmit, submitButtonText
   const [password, setPassword] = useState('');
   
   // ⚙️ ব্যাকএন্ডের কী (Keys) গুলোর সাথে ডিফল্ট স্টেট ম্যাচ করা হলো
-  const [permissions, setPermissions] = useState<Permissions>({
-    canManageBuses: initialValues?.permissions?.canManageBuses ?? false,
-    canManageStudents: initialValues?.permissions?.canManageStudents ?? false,
-    canPostNotices: initialValues?.permissions?.canPostNotices ?? false,
-    canViewTracking: initialValues?.permissions?.canViewTracking ?? false,
-  });
+const [permissions, setPermissions] = useState<Permissions>({
+  canManageDrivers: initialValues?.permissions?.canManageDrivers ?? false,
+  canManageBuses: initialValues?.permissions?.canManageBuses ?? false,
+  canPostNotices: initialValues?.permissions?.canPostNotices ?? false,
+  canManageSubadmin: initialValues?.permissions?.canManageSubadmin ?? false,
+});
 
   const togglePermission = (key: keyof Permissions) => {
     setPermissions(prev => ({ ...prev, [key]: !prev[key] }));
@@ -83,11 +84,11 @@ export default function SubAdminForm({ initialValues, onSubmit, submitButtonText
 
       {/* ২. স্টুডেন্ট ম্যানেজমেন্ট পারমিশন */}
       <View style={styles.switchRow}>
-        <Text style={styles.switchLabel}>Can Manage Students</Text>
-        <Switch 
-          value={permissions.canManageStudents} 
-          onValueChange={() => togglePermission('canManageStudents')} 
-        />
+        <Text style={styles.switchLabel}>Can Manage Drivers</Text>
+       <Switch 
+    value={permissions.canManageDrivers} 
+    onValueChange={() => togglePermission('canManageDrivers')} 
+  />
       </View>
 
       {/* ৩. নোটিশ পোস্ট পারমিশন */}
@@ -101,10 +102,10 @@ export default function SubAdminForm({ initialValues, onSubmit, submitButtonText
 
       {/* ৪. ট্র্যাকিং ভিউ পারমিশন */}
       <View style={styles.switchRow}>
-        <Text style={styles.switchLabel}>Can View Tracking</Text>
+        <Text style={styles.switchLabel}>Can Manage Sub-Admins</Text>
         <Switch 
-          value={permissions.canViewTracking} 
-          onValueChange={() => togglePermission('canViewTracking')} 
+          value={permissions.canManageSubadmin} 
+          onValueChange={() => togglePermission('canManageSubadmin')} 
         />
       </View>
 

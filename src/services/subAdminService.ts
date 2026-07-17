@@ -1,6 +1,4 @@
-
-
-import { handleApiError } from "../utils/handleApiError"; // path adjust করুন আপনার utils ফোল্ডার অনুযায়ী
+import { handleApiError } from "../utils/handleApiError";
 import api from "./api";
 
 export interface Permissions {
