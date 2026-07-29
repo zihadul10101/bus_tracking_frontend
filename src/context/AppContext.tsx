@@ -39,7 +39,7 @@ function safeParse<T>(json: string | null): T | null {
   try {
     return JSON.parse(json) as T;
   } catch (e) {
-    console.log('🛡️ AppContext: Corrupted cache entry, ignoring:', e);
+    //console.log('🛡️ AppContext: Corrupted cache entry, ignoring:', e);
     return null;
   }
 }
@@ -64,7 +64,7 @@ function getTokenExpiryMs(token: string): number | null {
     }
     return null;
   } catch (e) {
-    console.log('🛡️ AppContext: Could not decode token exp, will use fallback:', e);
+   // console.log('🛡️ AppContext: Could not decode token exp, will use fallback:', e);
     return null;
   }
 }
@@ -130,7 +130,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
         refreshAllData();
       } else if (parsedUser && isExpired) {
-        console.log('🛡️ AppContext: Token expired per backend exp claim, clearing session.');
+       // console.log('🛡️ AppContext: Token expired per backend exp claim, clearing session.');
         await AsyncStorage.multiRemove([
           STORAGE_KEYS.TOKEN,
           STORAGE_KEYS.ROLE,
@@ -211,11 +211,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
       await AsyncStorage.multiSet(entries);
       refreshAllData();
-      console.log(
-        '💾 AppContext: Logged in & profile saved. Session expires:',
-        new Date(expiresAt),
-        decodedExpiry ? '(from backend token)' : '(fallback default)'
-      );
+      // console.log(
+      //   '💾 AppContext: Logged in & profile saved. Session expires:',
+      //   new Date(expiresAt),
+      //   decodedExpiry ? '(from backend token)' : '(fallback default)'
+      // );
     } catch (error) {
       console.log('🛡️ AppContext: Error during login data save:', error);
     }

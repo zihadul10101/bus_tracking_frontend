@@ -21,6 +21,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { height } = Dimensions.get('window');
+const isSmallDevice = height < 700; // e.g. iPhone SE, small Android
 
 export default function DriverLoginScreen() {
     const router = useRouter();
@@ -70,6 +71,13 @@ export default function DriverLoginScreen() {
         }).start();
     };
 
+    // ✅ Responsive scroll-into-view helper — keyboard খোলার সময় focused input visible রাখে
+    const scrollToInput = (offset: number) => {
+        setTimeout(() => {
+            scrollRef.current?.scrollTo({ y: offset, animated: true });
+        }, 150);
+    };
+
     const handleDriverLogin = async () => {
         if (!driverId || !password) {
             Alert.alert('Required', 'Please enter Driver ID and password');
@@ -106,6 +114,7 @@ export default function DriverLoginScreen() {
             <KeyboardAvoidingView
                 style={{ flex: 1 }}
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
             >
                 <ScrollView
                     ref={scrollRef}
@@ -159,8 +168,10 @@ export default function DriverLoginScreen() {
                                         value={driverId}
                                         onChangeText={setDriverId}
                                         autoCapitalize="none"
+                                        autoCorrect={false}
                                         editable={!loading}
                                         returnKeyType="next"
+                                        onFocus={() => scrollToInput(0)}
                                     />
                                 </View>
 
@@ -176,14 +187,11 @@ export default function DriverLoginScreen() {
                                         value={password}
                                         onChangeText={setPassword}
                                         autoCapitalize="none"
+                                        autoCorrect={false}
                                         editable={!loading}
                                         returnKeyType="done"
                                         onSubmitEditing={handleDriverLogin}
-                                        onFocus={() => {
-                                            setTimeout(() => {
-                                                scrollRef.current?.scrollToEnd({ animated: true });
-                                            }, 100);
-                                        }}
+                                        onFocus={() => scrollToInput(150)}
                                     />
                                     <Pressable onPress={() => setSecureText(!secureText)} hitSlop={10}>
                                         {secureText ? (
@@ -195,7 +203,6 @@ export default function DriverLoginScreen() {
                                 </View>
 
                                 {/* Remember Me / Forgot Password */}
-                          
 
                                 {/* Login Button */}
                                 <Animated.View
@@ -260,14 +267,14 @@ const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#1D4ED8' },
     scrollContent: { flexGrow: 1 },
 
-    headerGradient: { paddingBottom: 48 },
+    headerGradient: { paddingBottom: isSmallDevice ? 28 : 48 },
     headerContainer: {
         paddingHorizontal: 24,
-        paddingTop: 24,
+        paddingTop: isSmallDevice ? 12 : 24,
     },
     backButton: {
         alignSelf: 'flex-start',
-        marginBottom: 24,
+        marginBottom: isSmallDevice ? 14 : 24,
         width: 40,
         height: 40,
         borderRadius: 20,
@@ -275,9 +282,13 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
     },
-    headerTitle: { fontSize: 40, fontWeight: 'bold', color: '#fff' },
+    headerTitle: {
+        fontSize: isSmallDevice ? 30 : 40,
+        fontWeight: 'bold',
+        color: '#fff',
+    },
     headerSubtitle: {
-        fontSize: 15,
+        fontSize: isSmallDevice ? 13 : 15,
         color: '#e5e7eb',
         marginTop: 8,
         lineHeight: 20,
@@ -289,14 +300,14 @@ const styles = StyleSheet.create({
         borderTopLeftRadius: 30,
         borderTopRightRadius: 30,
         paddingHorizontal: 16,
-        paddingTop: 20,
+        paddingTop: isSmallDevice ? 14 : 20,
         marginTop: -30,
     },
     formCard: {
         backgroundColor: '#fff',
         borderRadius: 24,
         paddingHorizontal: 20,
-        paddingVertical: 24,
+        paddingVertical: isSmallDevice ? 18 : 24,
         shadowColor: '#0f172a',
         shadowOffset: { width: 0, height: 8 },
         shadowOpacity: 0.08,
@@ -311,8 +322,8 @@ const styles = StyleSheet.create({
         backgroundColor: '#f1f5f9',
         borderRadius: 14,
         paddingHorizontal: 16,
-        height: 56,
-        marginBottom: 16,
+        height: isSmallDevice ? 50 : 56,
+        marginBottom: isSmallDevice ? 12 : 16,
     },
     inputIcon: { marginRight: 12 },
     inputField: { flex: 1, color: '#1f2937', fontSize: 15 },
@@ -339,10 +350,10 @@ const styles = StyleSheet.create({
     rememberText: { color: '#6b7280', fontSize: 14 },
     forgotPasswordText: { color: '#2563EB', fontWeight: '600', fontSize: 14 },
 
-    buttonWrapper: { marginTop: 24 },
+    buttonWrapper: { marginTop: isSmallDevice ? 16 : 24 },
     primaryButton: {
         backgroundColor: '#2563EB',
-        height: 56,
+        height: isSmallDevice ? 50 : 56,
         borderRadius: 16,
         justifyContent: 'center',
         alignItems: 'center',
@@ -350,22 +361,22 @@ const styles = StyleSheet.create({
     buttonDisabled: { backgroundColor: '#9ca3af' },
     buttonText: { color: '#fff', fontSize: 17, fontWeight: 'bold' },
 
-    backToStudentRow: { alignItems: 'center', marginTop: 20 },
+    backToStudentRow: { alignItems: 'center', marginTop: isSmallDevice ? 14 : 20 },
     linkText: { color: '#2563EB', fontWeight: '600', fontSize: 14 },
 
-    tripSection: { alignItems: 'center', marginTop: 32, paddingHorizontal: 24 },
+    tripSection: { alignItems: 'center', marginTop: isSmallDevice ? 20 : 32, paddingHorizontal: 24 },
     divider: {
         width: '100%',
         borderTopWidth: 1,
         borderTopColor: '#d1d5db',
         borderStyle: 'dashed',
-        marginBottom: 24,
+        marginBottom: isSmallDevice ? 16 : 24,
     },
     tripRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 4 },
     tripEmoji: { fontSize: 18, marginRight: 8 },
     tripTitle: { color: '#1f2937', fontWeight: '600', fontSize: 15 },
     tripSubtitle: { color: '#6b7280', fontSize: 13, textAlign: 'center' },
 
-    versionFooter: { alignItems: 'center', marginTop: 32, marginBottom: 24 },
+    versionFooter: { alignItems: 'center', marginTop: isSmallDevice ? 20 : 32, marginBottom: 24 },
     versionText: { color: '#9ca3af', fontSize: 12 },
 });

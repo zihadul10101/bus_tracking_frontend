@@ -1,7 +1,8 @@
 import { Driver, driverService } from '@/src/services/driverService';
 import { router, useLocalSearchParams } from 'expo-router';
+import { Eye, EyeOff } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Button, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, Button, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 export default function EditDriver() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -13,7 +14,9 @@ export default function EditDriver() {
   const [name, setName] = useState('');
   const [mobile, setMobile] = useState('');
   const [licenseNumber, setLicenseNumber] = useState('');
-  const [password, setPassword] = useState(''); 
+  const [loginName, setLoginName] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false); 
   useEffect(() => {
     if (id) {
       setLoading(true);
@@ -25,6 +28,7 @@ export default function EditDriver() {
             setName(driverData.name || '');
             setMobile(driverData.mobile || '');
             setLicenseNumber(driverData.licenseNumber || '');
+            setLoginName(driverData.loginName || '');
           }
           setLoading(false);
         })
@@ -39,7 +43,7 @@ export default function EditDriver() {
   const handleUpdate = async () => {
     if (!id) return;
     
-    if (!name || !mobile || !licenseNumber) {
+    if (!name || !mobile || !licenseNumber || !loginName) {
       Alert.alert("Validation Error", "All fields except password are required!");
       return;
     }
@@ -47,7 +51,7 @@ export default function EditDriver() {
     setActionLoading(true);
     try {
      
-      const updatedFields: any = { name, mobile, licenseNumber };
+      const updatedFields: any = { name, mobile, licenseNumber, loginName };
       
       if (password.trim().length > 0) {
         if (password.length < 6) {
@@ -78,7 +82,17 @@ export default function EditDriver() {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={{ padding: 16, gap: 16 }} keyboardShouldPersistTaps="handled">
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+    >
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={{ padding: 16, gap: 16, paddingBottom: 120 }}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
       {actionLoading && <ActivityIndicator size="small" color="#2563eb" style={{ alignSelf: 'center' }} />}
       
       {driver ? (
@@ -98,18 +112,42 @@ export default function EditDriver() {
             <TextInput style={styles.input} value={licenseNumber} onChangeText={setLicenseNumber} placeholder="License" />
           </View>
 
+          <View>
+            <Text style={styles.label}>Login Name</Text>
+            <TextInput
+              style={styles.input}
+              value={loginName}
+              onChangeText={setLoginName}
+              placeholder="Login Name"
+              autoCapitalize="none"
+            />
+          </View>
+
        
           <View>
             <Text style={styles.label}>New Password (Optional)</Text>
-            <TextInput 
-              style={styles.input} 
-              value={password} 
-              onChangeText={setPassword} 
-              placeholder="Leave blank to keep unchanged" 
-              secureTextEntry
-              autoCapitalize="none"
-            />
-            <Text style={styles.hintText}>পাসওয়ার্ড পরিবর্তন করতে না চাইলে ঘরটি ফাঁকা রাখুন।</Text>
+            <View style={styles.passwordWrapper}>
+              <TextInput
+                style={styles.passwordInput}
+                value={password}
+                onChangeText={setPassword}
+                placeholder="Leave blank to keep unchanged"
+                secureTextEntry={!showPassword}
+                autoCapitalize="none"
+              />
+              <TouchableOpacity
+                onPress={() => setShowPassword(!showPassword)}
+                style={styles.eyeButton}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                {showPassword ? (
+                  <EyeOff size={20} color="#64748b" />
+                ) : (
+                  <Eye size={20} color="#64748b" />
+                )}
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.hintText}>পাসওয়ার্ড পরিবর্তন করতে না চাইলে ঘরটি ফাঁকা রাখুন।</Text>
           </View>
 
           <View style={{ marginTop: 10 }}>
@@ -121,7 +159,8 @@ export default function EditDriver() {
           <Text style={{ color: '#ef4444' }}>Driver data not found!</Text>
         </View>
       )}
-    </ScrollView>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -130,5 +169,25 @@ const styles = StyleSheet.create({
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#fff' },
   label: { fontSize: 14, fontWeight: '600', color: '#475569', marginBottom: 4 },
   input: { borderWidth: 1, borderColor: '#cbd5e1', padding: 10, borderRadius: 8, fontSize: 16, backgroundColor: '#f8fafc' },
+  passwordWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#cbd5e1',
+    borderRadius: 8,
+    backgroundColor: '#f8fafc',
+    width: '100%',
+  },
+  passwordInput: {
+    flex: 1,
+    minWidth: 0,
+    padding: 10,
+    fontSize: 16,
+    color: '#0f172a',
+  },
+  eyeButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
   hintText: { fontSize: 11, color: '#94a3b8', marginTop: 4, fontStyle: 'italic' }
 });

@@ -5,7 +5,7 @@ const api = axios.create({
   baseURL: process.env.EXPO_PUBLIC_API_BASE_URL,
   timeout: 60000,
 });
-
+console.log("BASE URL:", process.env.EXPO_PUBLIC_API_BASE_URL);
 // =======================
 // Request Interceptor
 // =======================

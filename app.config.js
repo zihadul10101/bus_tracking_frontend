@@ -13,11 +13,15 @@ export default {
     ios: {
       supportsTablet: true
     },
+    
     android: {
+      "enableProguardInReleaseBuilds": true,
+      "enableShrinkResourcesInReleaseBuilds": true,
       adaptiveIcon: {
         backgroundColor: "#E6F4FE",
         foregroundImage: "./assets/images/adaptive-icon.png"
       },
+       "jsEngine": "hermes",
       edgeToEdgeEnabled: true,
       predictiveBackGestureEnabled: false,
       package: "com.zihadulsub317.southerntransport",

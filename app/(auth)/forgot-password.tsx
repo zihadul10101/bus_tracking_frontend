@@ -16,7 +16,9 @@ import {
 
 const { height } = Dimensions.get('window');
 
-
+// At least 6 characters, 1 uppercase, 1 lowercase & 1 special character
+const PASSWORD_REGEX =
+  /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*(),.?":{}|<>_\-+=~`[\]\\/;'])[A-Za-z\d!@#$%^&*(),.?":{}|<>_\-+=~`[\]\\/;']{6,}$/;
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
@@ -73,10 +75,10 @@ export default function ForgotPasswordScreen() {
       );
     }
 
-    if (newPassword.length < 6) {
+    if (!PASSWORD_REGEX.test(newPassword)) {
       return Alert.alert(
-        "Too Short",
-        "Password must be at least 6 characters"
+        "Weak Password",
+        "Password must be at least 6 characters and include 1 uppercase, 1 lowercase & 1 special character"
       );
     }
 
@@ -180,6 +182,9 @@ export default function ForgotPasswordScreen() {
                   )}
                 </TouchableOpacity>
               </View>
+              <Text style={styles.helperText}>
+                At least 6 characters, 1 uppercase, 1 lowercase & 1 special character
+              </Text>
 
               <Text style={styles.inputLabel}>Confirm Password</Text>
               <View style={styles.inputWrapper}>
@@ -317,6 +322,13 @@ const styles = StyleSheet.create({
     flex: 1,
     color: '#1f2937',
     fontSize: 15
+  },
+  helperText: {
+    fontSize: 12,
+    color: '#6b7280',
+    marginTop: -14,
+    marginBottom: 20,
+    lineHeight: 16
   },
   primaryButton: {
     backgroundColor: '#007bff',

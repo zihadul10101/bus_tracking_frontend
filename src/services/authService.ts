@@ -10,6 +10,16 @@ export const authService = {
   // ===========================================================
 
   // Student Registration
+  // registerStudent: async (data: any) => {
+  //   try {
+  //     const response = await api.post("/students/register", data);
+  //     return response.data;
+  //   } catch (error) {
+  //     throw handleApiError(error, "রেজিস্ট্রেশন সম্পন্ন করা যায়নি");
+  //   }
+  // },
+
+  // Student Registration
   registerStudent: async (data: any) => {
     try {
       const response = await api.post("/students/register", data);
@@ -19,6 +29,25 @@ export const authService = {
     }
   },
 
+  // Verify OTP (Email Verification after Registration)
+  verifyOtp: async (userId: string, otp: string) => {
+    try {
+      const response = await api.post("/students/verify-otp", { userId, otp });
+      return response.data;
+    } catch (error) {
+      throw handleApiError(error, "OTP ভেরিফাই করা যায়নি");
+    }
+  },
+
+  // Resend OTP
+  resendOtp: async (userId: string) => {
+    try {
+      const response = await api.post("/students/resend-otp", { userId });
+      return response.data;
+    } catch (error) {
+      throw handleApiError(error, "নতুন OTP পাঠানো যায়নি");
+    }
+  },
   // Login (Admin / Student)
   login: async (email: string, password: string) => {
     try {

@@ -47,7 +47,7 @@ export default function LoginScreen() {
       const data = await authService.login(email.trim(), password);
 
       if (data.success) {
-  
+
         await login(data.user, data.token, data.role);
         router.replace("/(tabs)/home");
       } else {
@@ -71,9 +71,6 @@ export default function LoginScreen() {
           {/* --- HEADER SECTION --- */}
           <View style={styles.headerContainer}>
             <View style={styles.headerContent}>
-              <TouchableOpacity style={styles.backButton}>
-                <Ionicons name="arrow-back" size={26} color="#fff" />
-              </TouchableOpacity>
               <Text style={styles.headerTitle}>Welcome Back</Text>
               <Text style={styles.headerSubtitle}>
                 Login to your account to continue
@@ -88,13 +85,12 @@ export default function LoginScreen() {
             >
               <Path
                 d={`M0,0 
-                    C${SCREEN_WIDTH * 0.25},${CURVE_HEIGHT * 1.5} ${SCREEN_WIDTH * 0.75},${CURVE_HEIGHT * 1.5} ${SCREEN_WIDTH},0 
-                    L${SCREEN_WIDTH},${CURVE_HEIGHT} L0,${CURVE_HEIGHT} Z`}
+          C${SCREEN_WIDTH * 0.25},${CURVE_HEIGHT * 1.5} ${SCREEN_WIDTH * 0.75},${CURVE_HEIGHT * 1.5} ${SCREEN_WIDTH},0 
+          L${SCREEN_WIDTH},${CURVE_HEIGHT} L0,${CURVE_HEIGHT} Z`}
                 fill="#0B6BFF"
               />
             </Svg>
           </View>
-
           {/* --- MAIN LOGIN CARD --- */}
           <View style={styles.card}>
 
@@ -118,6 +114,7 @@ export default function LoginScreen() {
             <Text style={styles.label}>Password</Text>
             <View style={styles.inputWrapper}>
               <Ionicons name="lock-closed-outline" size={20} color="#8A8F98" style={styles.inputIcon} />
+
               <TextInput
                 style={styles.input}
                 placeholder="••••••••"
@@ -126,6 +123,9 @@ export default function LoginScreen() {
                 onChangeText={setPassword}
                 secureTextEntry={!showPassword}
                 editable={!loading}
+                autoCapitalize="none"      // ✅ যোগ করুন
+                autoCorrect={false}         // ✅ যোগ করুন
+                spellCheck={false}          // ✅ ভালো practice, extra safety
               />
               <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
                 <Ionicons
@@ -206,24 +206,22 @@ const styles = StyleSheet.create({
   headerContent: {
     flex: 1,
     paddingHorizontal: 24,
-    paddingTop: 20,
-  },
-  backButton: {
-    marginBottom: 24,
-    width: 40,
-    height: 40,
-    justifyContent: "center",
+    justifyContent: 'center',   // ✅ vertical center
+    alignItems: 'center',        // ✅ horizontal center
   },
   headerTitle: {
     fontSize: 32,
     fontWeight: "bold",
     color: "#ffffff",
     marginBottom: 8,
+    textAlign: 'center',         // ✅ multi-line হলেও center থাকবে
   },
   headerSubtitle: {
     fontSize: 15,
     color: "rgba(255, 255, 255, 0.85)",
+    textAlign: 'center',         // ✅ center
   },
+
   headerCurve: {
     position: "absolute",
     bottom: -1,
