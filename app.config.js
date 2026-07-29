@@ -13,7 +13,7 @@ export default {
     ios: {
       supportsTablet: true
     },
-    
+
     android: {
       "enableProguardInReleaseBuilds": true,
       "enableShrinkResourcesInReleaseBuilds": true,
@@ -21,7 +21,7 @@ export default {
         backgroundColor: "#E6F4FE",
         foregroundImage: "./assets/images/adaptive-icon.png"
       },
-       "jsEngine": "hermes",
+      "jsEngine": "hermes",
       edgeToEdgeEnabled: true,
       predictiveBackGestureEnabled: false,
       package: "com.zihadulsub317.southerntransport",
@@ -97,9 +97,9 @@ export default {
     extra: {
       router: {},
       eas: {
-        projectId: "4b6e1f13-bea4-46c6-a122-101a7eed9fb8"
+        projectId: "d8114719-6d4f-4f83-895c-b2a0adb5ac33"
       }
     },
-    owner: "zihadulsub317"
+
   }
 };
